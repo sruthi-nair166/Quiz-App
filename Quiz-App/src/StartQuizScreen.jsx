@@ -1,10 +1,14 @@
-import categories from "./Categories.jsx";
-
-export default function StartQuizScreen({category, subCategory, setSubCategory, setCategoryId}) {
+export default function StartQuizScreen({category, subCategory, setSubCategory, setCategoryId,setQuestionNumber, setDifficulty, setType, setQuizStart, setStatus, setQuestions, setQuestionCurrentIndex, setCurrentOption, setUserAnswers}) {
 
 
-  const handleChange = e => {
-    
+  const handleSubmit = e => {
+    e.preventDefault();
+    setQuizStart(true);
+    setStatus("loading");
+    setQuestions(null);
+    setQuestionCurrentIndex(0);
+    setCurrentOption(null);
+    setUserAnswers({});
   }
 
   
@@ -22,13 +26,15 @@ export default function StartQuizScreen({category, subCategory, setSubCategory, 
                        <h1>{subCategory} quiz</h1> 
                      </>
                    : <h1>{category} quiz</h1>}
-      <form>
+                   
+      <form onSubmit={handleSubmit}>
 
         <label htmlFor="no-of-q">Select Number of Questions:</label>
-        <input type="number" defaultValue={10} min={10} max={50} id="no-of-q" onChange={handleChange} />
+        <input type="number" defaultValue={10} min={10} max={50} id="no-of-q" 
+               onChange={e => setQuestionNumber(e.target.value)} />
 
         <label htmlFor="difficulty">Select Difficulty:</label>
-        <select id="difficulty" onChange={handleChange}>
+        <select id="difficulty" onChange={e => setDifficulty(e.target.value)}>
           <option value="any">Any</option>
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
@@ -36,14 +42,13 @@ export default function StartQuizScreen({category, subCategory, setSubCategory, 
         </select>
 
         <label htmlFor="type">Select Type</label>
-        <select id="type" onChange={handleChange}>
+        <select id="type" onChange={e => setType(e.target.value)}>
           <option value="any">Any</option>
-          <option value="mcq">Multiple Choice</option>
-          <option value="true-false">True/False</option>
-      
+          <option value="multiple">Multiple Choice</option>
+          <option value="boolean">True/False</option>
         </select>
         
-        <button>Start</button>
+        <button type="submit">Start</button>
       </form>
 
     </>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import categories from "./Categories.jsx";
+import categories from "./categories.js";
 
-export default function SubCategoryDisplay({category, subCategory, setCategory, setSubCategory, setCategoryId}) {
+export default function SubCategoryDisplay({category, setCategory, setSubCategory, setCategoryId}) {
   
   const handleClick = e => {
     const selectedSubCategory = e.target.textContent;
@@ -26,10 +26,6 @@ export default function SubCategoryDisplay({category, subCategory, setCategory, 
       {Object.entries(categories).map(([key, value]) => {
 
         if(category === key) {
-
-          if(typeof value === "number") {
-            console.log("component which displays the quiz");
-          }    
 
           if(typeof value === "object") {
             return (

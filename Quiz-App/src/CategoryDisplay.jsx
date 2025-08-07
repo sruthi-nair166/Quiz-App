@@ -1,4 +1,4 @@
-import categories from "./Categories.jsx";
+import categories from "./categories.js";
 
 export default function CategoryDisplay({setCategory}) {
 
