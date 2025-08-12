@@ -1,44 +1,47 @@
+import { useNavigate } from "react-router-dom";
 import { decodeHTML } from "./decodeHTML.js";
 
-export default function ResultsScreen({questions, userAnswers, setResults, setQuizStart, setQuestionNumber, setDifficulty, setType, setQuestionCurrentIndex, setCurrentOption, setUserAnswers}) {
-
+export default function ResultsScreen({
+  questions,
+  userAnswers,
+  setQuizStart,
+  setQuestionCurrentIndex,
+  setCurrentOption,
+  setUserAnswers,
+}) {
   let score = 0;
 
+  const navigate = useNavigate();
 
-  Object.values(userAnswers).map((answer, idx) => {
-    
-    if(answer === decodeHTML(questions[idx]["correct_answer"])) {
+  localStorage.setItem("quizTakerAnswers", JSON.stringify(userAnswers));
+
+  Object.values(userAnswers).forEach((answer, idx) => {
+    if (answer === decodeHTML(questions[idx]["correct_answer"])) {
       score++;
     }
   });
 
-
   return (
-
     <>
-
-      <button type="button" onClick={() => {
-                              setResults(false);
-                              setQuestionNumber(10);
-                              setDifficulty("any");
-                              setType("any");
-                            }}>Back</button>
+      <button type="button" onClick={() => navigate(-1)}>
+        Back
+      </button>
 
       <h1>Results</h1>
       <p>You have scored {score} points</p>
 
-      <button onClick={() => {
-        setResults(false);
-        setQuizStart(true);
-        setQuestionNumber(10);
-        setDifficulty("any");
-        setType("any");
-        setQuestionCurrentIndex(0);
-        setCurrentOption(null);
-        setUserAnswers({});
-      }}>Retake Quiz</button>
+      <button
+        onClick={() => {
+          setQuizStart(true);
+          setQuestionCurrentIndex(0);
+          setCurrentOption(null);
+          setUserAnswers({});
+
+          navigate("/quiz");
+        }}
+      >
+        Retake Quiz
+      </button>
     </>
-
   );
-
 }
