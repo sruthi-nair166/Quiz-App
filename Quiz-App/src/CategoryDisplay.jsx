@@ -12,6 +12,7 @@ export default function CategoryDisplay({ setCategory }) {
 
   return (
     <>
+      <button onClick={() => navigate(-1)}>Back</button>
       {Object.keys(categories).map((key) => {
         return (
           <button key={key} onClick={handleClick}>

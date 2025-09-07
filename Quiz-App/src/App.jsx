@@ -13,6 +13,12 @@ import SubCategoryDisplay from "./SubCategoryDisplay.jsx";
 import StartQuizScreen from "./StartQuizScreen.jsx";
 import QuizScreen from "./QuizScreen.jsx";
 import ResultsScreen from "./ResultsScreen.jsx";
+import AnswersComparison from "./AnswersComparison.jsx";
+import AuthPage from "./AuthPage.jsx";
+import ProfileSetup from "./ProfileSetup.jsx";
+import HomeScreen from "./HomeScreen.jsx";
+import Settings from "./Settings.jsx";
+import SettingsUpdate from "./SettingsUpdate.jsx";
 
 function App() {
   const [category, setCategory] = useState(null);
@@ -33,16 +39,15 @@ function App() {
     return saved ? JSON.parse(saved) : {};
   });
   const [status, setStatus] = useState("idle");
+  const [msg, setMsg] = useState("");
+  const [avatar, setAvatar] = useState(null);
+  const [username, setUsername] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const location = useLocation();
   const action = useNavigationType();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (location.pathname === "/" && action === "POP") {
-      navigate("/", { replace: true });
-    }
-  }, [action, location, navigate]);
 
   useEffect(() => {
     if (!quizStart || status !== "loading") return;
@@ -73,22 +78,74 @@ function App() {
 
   return (
     <>
-      <button
-        onClick={() => {
-          setQuizStart(false);
-          setStatus("idle");
-          setQuestionNumber(10);
-          setDifficulty("any");
-          setType("any");
-          navigate("/");
-        }}
-      >
-        Home
-      </button>
-
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route
-          path="/"
+          path="/:mode"
+          element={
+            <AuthPage msg={msg} setMsg={setMsg} setLoggedIn={setLoggedIn} />
+          }
+        />
+
+        <Route
+          path="/profile-setup/:mode"
+          element={
+            <ProfileSetup
+              avatar={avatar}
+              setAvatar={setAvatar}
+              username={username}
+              setUsername={setUsername}
+              setLoggedIn={setLoggedIn}
+              msg={msg}
+              setMsg={setMsg}
+            />
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <Settings
+              username={username}
+              setUsername={setUsername}
+              setAvatar={setAvatar}
+              avatar={avatar}
+              setLoggedIn={setLoggedIn}
+              msg={msg}
+              setMsg={setMsg}
+            />
+          }
+        />
+
+        <Route
+          path="/update-settings/:mode/:step"
+          element={<SettingsUpdate msg={msg} setMsg={setMsg} />}
+        />
+
+        <Route
+          path="/home"
+          element={
+            <HomeScreen
+              setCategory={setCategory}
+              setQuizStart={setQuizStart}
+              setStatus={setStatus}
+              setQuestionNumber={setQuestionNumber}
+              setDifficulty={setDifficulty}
+              setType={setType}
+              loggedIn={loggedIn}
+              setLoggedIn={setLoggedIn}
+              username={username}
+              setUsername={setUsername}
+              avatar={avatar}
+              setAvatar={setAvatar}
+              open={open}
+              setOpen={setOpen}
+            />
+          }
+        />
+
+        <Route
+          path="/category"
           element={<CategoryDisplay setCategory={setCategory} />}
         />
 
@@ -148,6 +205,7 @@ function App() {
           path="/results"
           element={
             <ResultsScreen
+              questionNumber={questionNumber}
               questions={questions}
               userAnswers={userAnswers}
               setQuizStart={setQuizStart}
@@ -158,7 +216,17 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/answers"
+          element={
+            <AnswersComparison
+              questions={questions}
+              userAnswers={userAnswers}
+            />
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </>
   );

@@ -53,17 +53,14 @@ export default function QuizScreen({
       onSubmit={(e) => {
         e.preventDefault();
 
-        if (!currentOption) alert("Please select an option");
-        else {
-          setQuizStart(false);
-          setUserAnswers((prev) => ({
-            ...prev,
-            [questionCurrentIndex]: currentOption,
-          }));
-          setCurrentOption(null);
+        setQuizStart(false);
+        setUserAnswers((prev) => ({
+          ...prev,
+          [questionCurrentIndex]: currentOption,
+        }));
+        setCurrentOption(null);
 
-          navigate("/results", { replace: true });
-        }
+        navigate("/results", { replace: true });
       }}
     >
       <button
@@ -115,18 +112,15 @@ export default function QuizScreen({
           <button
             type="button"
             onClick={() => {
-              if (!currentOption) alert("Please select an option");
-              else {
-                setUserAnswers((prev) => ({
-                  ...prev,
-                  [questionCurrentIndex]: currentOption,
-                }));
-                setQuestionCurrentIndex((prev) => prev + 1);
-                setCurrentOption(null);
-              }
+              setUserAnswers((prev) => ({
+                ...prev,
+                [questionCurrentIndex]: currentOption,
+              }));
+              setQuestionCurrentIndex((prev) => prev + 1);
+              setCurrentOption(null);
             }}
           >
-            Next
+            {currentOption ? "Next" : "Skip"}
           </button>
         )}
 
