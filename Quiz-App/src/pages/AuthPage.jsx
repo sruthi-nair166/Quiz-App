@@ -7,13 +7,15 @@ import {
   linkWithCredential,
   sendEmailVerification,
 } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth } from "../firebase";
 import { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 
-export default function AuthPage({ msg, setMsg, setLoggedIn }) {
+export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
   const { mode } = useParams();
+  const modeFinal = modeProp || mode;
+
   const emailRef = useRef();
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
@@ -40,7 +42,21 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
 
         if (!user.emailVerified) {
           setMsg(
-            "Please check your inbox and verify your email before continuing"
+            <>
+              Please check your inbox and verify your email before continuing.
+              Didn't receive verification link?
+              <button
+                onClick={() => {
+                  sendEmailVerification(user)
+                    .then(() => setMsg("Verification email resent."))
+                    .catch((err) =>
+                      setMsg("Error sending verification link", err)
+                    );
+                }}
+              >
+                Resend Verification Link
+              </button>
+            </>
           );
           return;
         }
@@ -102,8 +118,11 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
           })
           .catch((err) => {
             console.error("Error sending verification email:", err);
+            setMsg("Error sending verification email.");
           });
-        navigate("/profile-setup/signup-avatar");
+        navigate("/profile-setup/signup-avatar", {
+          state: { fromInsideApp: true },
+        });
       })
       .catch((error) => {
         if (error.code === "auth/email-already-in-use") {
@@ -123,7 +142,10 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
       .then(() => {
         setMsg("Email has been sent, please check your inbox");
       })
-      .catch((err) => console.error(err.code));
+      .catch((err) => {
+        console.error(err.code);
+        setMsg("Error changing password.");
+      });
     passwordRef.current.value = "";
     confirmPasswordRef.current.value = "";
   };
@@ -147,9 +169,14 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
           return sendEmailVerification(userCred.user);
         })
         .then(() => {
-          navigate("/profile-setup/signup-avatar");
+          navigate("/profile-setup/signup-avatar", {
+            state: { fromInsideApp: true },
+          });
         })
-        .catch((err) => console.error("Error linking account", err));
+        .catch((err) => {
+          console.error("Error linking account", err);
+          setMsg("Error linking account. Please try a different email.");
+        });
     } else {
       console.log("no guest user logged in");
     }
@@ -163,11 +190,11 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
     if (emailRef.current) emailRef.current.value = "";
     if (passwordRef.current) passwordRef.current.value = "";
     if (confirmPasswordRef.current) confirmPasswordRef.current.value = "";
-  }, [mode]);
+  }, [modeFinal]);
 
   return (
     <>
-      {mode !== "link-account" ? (
+      {modeFinal !== "link-account" ? (
         <button type="button" onClick={() => handleGuestLogin()}>
           Continue as Guest
         </button>
@@ -175,34 +202,34 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
         ""
       )}
 
-      {mode !== "link-account" ? <p>or</p> : ""}
+      {modeFinal !== "link-account" ? <p>or</p> : ""}
 
-      {mode === "link-account" ? (
+      {modeFinal === "link-account" ? (
         <button onClick={() => navigate(-1)}>Back</button>
       ) : (
         ""
       )}
 
-      {mode === "login" ? (
-        <h2>Login</h2>
-      ) : mode === "signup" ? (
+      {modeFinal === "link-account" ? (
+        <h2>Link Account</h2>
+      ) : modeFinal === "signup" ? (
         <h2>Sign Up</h2>
-      ) : mode === "password-reset" ? (
+      ) : modeFinal === "password-reset" ? (
         <h2>Password Reset</h2>
       ) : (
-        <h2>Link Account</h2>
+        <h2>Login</h2>
       )}
       <p>{msg}</p>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          e.nativeEvent.submitter.id === "login"
-            ? handleLogin()
+          e.nativeEvent.submitter.id === "link-account"
+            ? handleLinkAccount()
             : e.nativeEvent.submitter.id === "signup"
             ? handleSignUp()
-            : e.nativeEvent.submitter.id === "passwordReset"
+            : e.nativeEvent.submitter.id === "password-reset"
             ? handlePasswordReset()
-            : handleLinkAccount();
+            : handleLogin();
         }}
       >
         <label htmlFor="email">Email: </label>
@@ -213,7 +240,7 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
           ref={emailRef}
           required
         />
-        {mode !== "password-reset" ? (
+        {modeFinal !== "password-reset" ? (
           <>
             <label htmlFor="password">Password: </label>
             <input
@@ -227,7 +254,7 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
         ) : (
           ""
         )}
-        {mode === "signup" || mode === "link-account" ? (
+        {modeFinal === "signup" || modeFinal === "link-account" ? (
           <>
             <label htmlFor="confirmPassword">Confirm Password: </label>
             <input
@@ -241,45 +268,45 @@ export default function AuthPage({ msg, setMsg, setLoggedIn }) {
         ) : (
           ""
         )}
-        {mode === "login" ? (
-          <button id="login" type="submit">
-            Login
+        {modeFinal === "password-reset" ? (
+          <button id="password-reset" type="submit">
+            Reset Password
           </button>
-        ) : mode === "signup" || mode === "link-account" ? (
+        ) : modeFinal === "signup" || modeFinal === "link-account" ? (
           <button
-            id={mode === "signup" ? "signup" : "link-account"}
+            id={modeFinal === "signup" ? "signup" : "link-account"}
             type="submit"
           >
             Continue
           </button>
         ) : (
-          <button id="passwordReset" type="submit">
-            Reset Password
+          <button id="login" type="submit">
+            Login
           </button>
         )}
       </form>
 
-      {mode === "login" ? (
-        <button type="button" onClick={() => navigate("/password-reset")}>
+      {modeFinal === "login" ? (
+        <button type="button" onClick={() => navigate("/auth/password-reset")}>
           Forgot Password?
         </button>
       ) : (
         ""
       )}
-      {mode === "login" ? (
-        <p>
-          Don't have an Account?{" "}
-          <button type="button" onClick={() => navigate("/signup")}>
-            Sign Up
-          </button>
-        </p>
-      ) : mode === "link-account" ? (
+      {modeFinal === "link-account" ? (
         ""
-      ) : (
+      ) : modeFinal === "signup" || modeFinal === "password-reset" ? (
         <p>
           Have an Account?{" "}
-          <button type="button" onClick={() => navigate("/login")}>
+          <button type="button" onClick={() => navigate("/auth/login")}>
             Login
+          </button>
+        </p>
+      ) : (
+        <p>
+          Don't have an Account?{" "}
+          <button type="button" onClick={() => navigate("/auth/signup")}>
+            Sign Up
           </button>
         </p>
       )}

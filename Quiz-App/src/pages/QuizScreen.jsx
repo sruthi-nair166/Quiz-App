@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { decodeHTML } from "./decodeHTML.js";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { decodeHTML } from "../utils/decodeHTML.js";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function QuizScreen({
   questions,
@@ -14,12 +14,22 @@ export default function QuizScreen({
   setCurrentOption,
   setUserAnswers,
   status,
+  category,
+  setCategory,
+  subCategory,
+  setSubCategory,
 }) {
-  let optionsArray = [];
-
   if (status === "loading") return <p>Loading...</p>;
 
   const navigate = useNavigate();
+  const { category: categoryParam, subCategory: subCategoryParam } =
+    useParams();
+  const optionsArray = questions[questionCurrentIndex].shuffled_options;
+
+  useEffect(() => {
+    if (categoryParam) setCategory(categoryParam);
+    if (subCategoryParam) setSubCategory(subCategoryParam);
+  }, [categoryParam, subCategoryParam]);
 
   if (status === "error" || !questions)
     return (
@@ -40,14 +50,6 @@ export default function QuizScreen({
       </>
     );
 
-  optionsArray = useMemo(() => {
-    const arr = [
-      questions[questionCurrentIndex]["correct_answer"],
-      ...questions[questionCurrentIndex]["incorrect_answers"],
-    ];
-    return arr.sort(() => Math.random() - 0.5);
-  }, [questionCurrentIndex]);
-
   return (
     <form
       onSubmit={(e) => {
@@ -60,7 +62,15 @@ export default function QuizScreen({
         }));
         setCurrentOption(null);
 
-        navigate("/results", { replace: true });
+        navigate(
+          `/results/${encodeURIComponent(category)}/${encodeURIComponent(
+            subCategory
+          )}`,
+          {
+            replace: true,
+            state: { fromInsideApp: true },
+          }
+        );
       }}
     >
       <button

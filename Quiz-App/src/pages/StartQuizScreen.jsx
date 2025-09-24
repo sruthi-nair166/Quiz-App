@@ -15,6 +15,7 @@ export default function StartQuizScreen({
   setQuestionCurrentIndex,
   setCurrentOption,
   setUserAnswers,
+  setQuizId,
 }) {
   const navigate = useNavigate();
   const action = useNavigationType();
@@ -31,6 +32,12 @@ export default function StartQuizScreen({
   }, [categoryParam, subCategoryParam, categoryIdParam]);
 
   const handleSubmit = (e) => {
+    const newQuizId =
+      Date.now().toString() + Math.random().toString(36).slice(2);
+
+    setQuizId(newQuizId);
+    localStorage.setItem("currentQuizId", newQuizId);
+
     e.preventDefault();
     setQuizStart(true);
     setStatus("loading");
@@ -38,7 +45,7 @@ export default function StartQuizScreen({
     setCurrentOption(null);
     setUserAnswers({});
 
-    navigate("/quiz");
+    navigate("/quiz", { state: { fromInsideApp: true } });
   };
 
   useEffect(() => {

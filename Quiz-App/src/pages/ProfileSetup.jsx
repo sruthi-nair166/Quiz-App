@@ -1,17 +1,15 @@
-import { auth, db } from "./firebase";
-import { onAuthStateChanged, reload, signOut } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { uniqueNamesGenerator, adjectives } from "unique-names-generator";
-import profilePicSelect from "./profilePicSelect";
+import profilePicSelect from "../data/ProfilePicSelect";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function ProfileSetup({
   avatar,
   setAvatar,
-  username,
   setUsername,
-  setLoggedIn,
   msg,
   setMsg,
 }) {
@@ -30,26 +28,30 @@ export default function ProfileSetup({
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
 
-      const userRef = doc(db, "users", user.uid);
-      const snapshot = await getDoc(userRef);
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snapshot = await getDoc(userRef);
 
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setRandomAdj(data.adj || "");
-        setNewRandomAdj(data.adj || "");
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setRandomAdj(data.adj || "");
+          setNewRandomAdj(data.adj || "");
 
-        setAnimalName(data.animal || "");
-        setUsername(`${data.adj} ${data.animal}`);
+          setAnimalName(data.animal || "");
+          setUsername(`${data.adj} ${data.animal}`);
 
-        setAvatar(data.avatar || null);
-        setSelectedAvatar(data.avatar || null);
-      } else {
-        setRandomAdj(
-          uniqueNamesGenerator({
-            dictionaries: [adjectives],
-            length: 1,
-          })
-        );
+          setAvatar(data.avatar || null);
+          setSelectedAvatar(data.avatar || null);
+        } else {
+          setRandomAdj(
+            uniqueNamesGenerator({
+              dictionaries: [adjectives],
+              length: 1,
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
       }
     });
 
@@ -65,11 +67,15 @@ export default function ProfileSetup({
   ) {
     if (!user) return;
     try {
-      await setDoc(doc(db, "users", user.uid), {
-        adj: randomAdjParam,
-        animal: animalNameParam,
-        avatar: animalUrlParam,
-      });
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          adj: randomAdjParam,
+          animal: animalNameParam,
+          avatar: animalUrlParam,
+        },
+        { merge: true }
+      );
     } catch (err) {
       console.error("Error saving profile:", err);
     }
@@ -137,16 +143,17 @@ export default function ProfileSetup({
           <img src={profilePicSelect[6]} width="70px" />
         </button>
 
-        {mode === "change-avatar" ? (
+        {mode === "change-avatar" && (
           <button onClick={() => navigate(-1)}>Back</button>
-        ) : (
-          ""
         )}
         <button
           disabled={selectedAvatar === avatar}
           onClick={() => {
             if (mode === "signup-avatar") {
-              navigate("/profile-setup/signup-username");
+              saveUserProfile(randomAdj, animalName, selectedAvatar);
+              navigate("/profile-setup/signup-username", {
+                state: { fromInsideApp: true },
+              });
               setMsg("");
             } else {
               setUsername(`${randomAdj} ${animalName}`);

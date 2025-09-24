@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth } from "../firebase.js";
 
 export default function SettingsUpdate({ msg, setMsg }) {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function SettingsUpdate({ msg, setMsg }) {
   useEffect(() => {
     if (verificationSent && user === null) {
       setMsg("Email successfully updated. Please log in with your new email.");
-      navigate("/login");
+      navigate("/auth/login");
     }
   }, [verificationSent, user]);
 
@@ -46,10 +46,14 @@ export default function SettingsUpdate({ msg, setMsg }) {
       .then(() => {
         if (mode === "change-email") {
           setMsg("");
-          navigate("/update-settings/change-email/update");
+          navigate("/update-settings/change-email/update", {
+            state: { fromInsideApp: true },
+          });
         } else {
           setMsg("");
-          navigate("/update-settings/change-password/update");
+          navigate("/update-settings/change-password/update", {
+            state: { fromInsideApp: true },
+          });
         }
       })
       .catch(() => setMsg("Incorrect password. Please try again."));

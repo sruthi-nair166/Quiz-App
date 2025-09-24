@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import categories from "./categories.js";
+import categories from "../data/categories.js";
 import { useNavigate, useNavigationType, useParams } from "react-router-dom";
 
 export default function SubCategoryDisplay({
@@ -36,7 +36,7 @@ export default function SubCategoryDisplay({
 
     if (typeof categories[category] === "number") {
       setCategoryId(categories[category]);
-      setSubCategory(null);
+      setSubCategory("");
       navigate(
         `/start/${encodeURIComponent(category)}/${encodeURIComponent(
           categories[category]

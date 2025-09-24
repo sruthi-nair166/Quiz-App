@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { auth, db } from "./firebase";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { auth, db } from "../firebase.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  getDocs,
+  deleteDoc,
+  collection,
+} from "firebase/firestore";
 import { signOut, onAuthStateChanged, deleteUser } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -32,17 +39,21 @@ export default function Settings({
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
 
-      const ref = doc(db, "users", firebaseUser.uid);
-      const snap = await getDoc(ref);
+      try {
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
 
-      if (snap.exists()) {
-        const data = snap.data();
-        setUsername(`${data.adj} ${data.animal}` || "");
-        setAvatar(data.avatar || null);
-      } else {
-        setUser(null);
-        setUsername(null);
-        setAvatar(null);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUsername(`${data.adj} ${data.animal}` || "");
+          setAvatar(data.avatar || null);
+        } else {
+          setUser(null);
+          setUsername(null);
+          setAvatar(null);
+        }
+      } catch (err) {
+        console.error("Error fetching user data:", err);
       }
     });
     return () => unsubscribe();
@@ -50,6 +61,35 @@ export default function Settings({
 
   const handleClearData = () => {
     if (!user) return;
+
+    const docRef = doc(db, "users", user.uid);
+    const attemptsRef = collection(db, "users", user.uid, "quizAttempts");
+
+    getDocs(attemptsRef)
+      .then((snapshot) => {
+        const batchDeletes = snapshot.docs.map((docSnap) =>
+          deleteDoc(doc(db, "users", user.uid, "quizAttempts", docSnap.id))
+        );
+
+        return Promise.all(batchDeletes);
+      })
+      .then(() => {
+        return getDoc(docRef);
+      })
+      .then((docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          const preservedData = {
+            adj: data.adj || "",
+            animal: data.animal || "",
+            avatar: data.avatar || null,
+          };
+          return setDoc(docRef, preservedData);
+        }
+      })
+      .then(() => setMsg("Your progress and other data have been cleared."))
+      .catch((err) => setMsg(`Error clearing account: ${err}`));
   };
 
   const handleDeleteData = () => {
@@ -65,7 +105,14 @@ export default function Settings({
       .then(() => navigate("/"))
       .catch((err) => {
         if (err.code === "auth/requires-recent-login") {
-          setMsg("Please log in again to be able to delete your account");
+          signOut(auth).then(() => {
+            setMsg(
+              <>
+                Please log in again to be able to delete your account
+                <button onClick={() => navigate("/")}>Login</button>
+              </>
+            );
+          });
         } else {
           setMsg(`Error deleting account: ${err}`);
         }
@@ -78,14 +125,18 @@ export default function Settings({
 
       <button
         onClick={() => {
-          navigate("/profile-setup/change-username");
+          navigate("/profile-setup/change-username", {
+            state: { fromInsideApp: true },
+          });
         }}
       >
         Username {username}
       </button>
       <button
         onClick={() => {
-          navigate("/profile-setup/change-avatar");
+          navigate("/profile-setup/change-avatar", {
+            state: { fromInsideApp: true },
+          });
         }}
       >
         Avatar <img src={avatar} width="30px" />
@@ -93,7 +144,9 @@ export default function Settings({
       <button
         onClick={() => {
           setMsg("");
-          navigate("/update-settings/change-email/verify");
+          navigate("/update-settings/change-email/verify", {
+            state: { fromInsideApp: true },
+          });
         }}
       >
         Email {user ? user.email : "Loading..."}
@@ -101,7 +154,9 @@ export default function Settings({
       <button
         onClick={() => {
           setMsg("");
-          navigate("/update-settings/change-password/verify");
+          navigate("/update-settings/change-password/verify", {
+            state: { fromInsideApp: true },
+          });
         }}
       >
         Password

@@ -1,4 +1,4 @@
-import categories from "./categories.js";
+import categories from "../data/categories.js";
 import { useNavigate } from "react-router-dom";
 
 export default function CategoryDisplay({ setCategory }) {

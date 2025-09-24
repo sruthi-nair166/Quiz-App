@@ -1,28 +1,28 @@
 import { useState } from "react";
 import { useEffect } from "react";
-import {
-  Routes,
-  Route,
-  Navigate,
-  useLocation,
-  useNavigationType,
-  useNavigate,
-} from "react-router-dom";
-import CategoryDisplay from "./CategoryDisplay.jsx";
-import SubCategoryDisplay from "./SubCategoryDisplay.jsx";
-import StartQuizScreen from "./StartQuizScreen.jsx";
-import QuizScreen from "./QuizScreen.jsx";
-import ResultsScreen from "./ResultsScreen.jsx";
-import AnswersComparison from "./AnswersComparison.jsx";
-import AuthPage from "./AuthPage.jsx";
-import ProfileSetup from "./ProfileSetup.jsx";
-import HomeScreen from "./HomeScreen.jsx";
-import Settings from "./Settings.jsx";
-import SettingsUpdate from "./SettingsUpdate.jsx";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase";
+
+import MainLayout from "./layouts/MainLayout.jsx";
+import CategoryDisplay from "./components/CategoryDisplay.jsx";
+import SubCategoryDisplay from "./components/SubCategoryDisplay.jsx";
+import StartQuizScreen from "./pages/StartQuizScreen.jsx";
+import QuizScreen from "./pages/QuizScreen.jsx";
+import ResultsScreen from "./pages/ResultsScreen.jsx";
+import AnswersComparison from "./components/AnswersComparison.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
+import ProfileSetup from "./pages/ProfileSetup.jsx";
+import HomeScreen from "./pages/HomeScreen.jsx";
+import Profile from "./pages/Profile.jsx";
+import Settings from "./pages/Settings.jsx";
+import SettingsUpdate from "./pages/SettingsUpdate.jsx";
 
 function App() {
-  const [category, setCategory] = useState(null);
-  const [subCategory, setSubCategory] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [category, setCategory] = useState("");
+  const [subCategory, setSubCategory] = useState("");
   const [categoryId, setCategoryId] = useState(null);
   const [questionNumber, setQuestionNumber] = useState(10);
   const [difficulty, setDifficulty] = useState("any");
@@ -43,11 +43,19 @@ function App() {
   const [avatar, setAvatar] = useState(null);
   const [username, setUsername] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [quizId, setQuizId] = useState(() => {
+    return localStorage.getItem("currentQuizId") || null;
+  });
 
-  const location = useLocation();
-  const action = useNavigationType();
-  const navigate = useNavigate();
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!quizStart || status !== "loading") return;
@@ -64,7 +72,13 @@ function App() {
           setQuestions(null);
           localStorage.removeItem("quizQuestions");
         } else {
-          setQuestions(data.results);
+          const preparedQuestions = data.results.map((q) => ({
+            ...q,
+            shuffled_options: [q.correct_answer, ...q.incorrect_answers].sort(
+              () => Math.random() - 0.5
+            ),
+          }));
+          setQuestions(preparedQuestions);
           setStatus("success");
 
           localStorage.setItem("quizQuestions", JSON.stringify(data.results));
@@ -76,157 +90,267 @@ function App() {
       });
   }, [quizStart, status]);
 
+  if (authLoading) {
+    return <p>Loading...</p>;
+  }
+
+  function NoDirectAccess({ children }) {
+    const location = useLocation();
+
+    if (!location.state || !location.state.fromInsideApp) {
+      return <Navigate to="/home" replace />;
+    }
+    return children;
+  }
+
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route
-          path="/:mode"
+          path="/"
+          element={
+            user ? (
+              <Navigate to="/home" replace />
+            ) : (
+              <Navigate to="/auth/login" replace />
+            )
+          }
+        />
+
+        <Route
+          path="/auth/:mode"
           element={
             <AuthPage msg={msg} setMsg={setMsg} setLoggedIn={setLoggedIn} />
           }
         />
 
         <Route
-          path="/profile-setup/:mode"
+          path="/auth/link-account"
           element={
-            <ProfileSetup
-              avatar={avatar}
-              setAvatar={setAvatar}
-              username={username}
-              setUsername={setUsername}
-              setLoggedIn={setLoggedIn}
-              msg={msg}
-              setMsg={setMsg}
-            />
+            user ? (
+              user.isAnonymous ? (
+                <AuthPage
+                  mode="link-account"
+                  msg={msg}
+                  setMsg={setMsg}
+                  setLoggedIn={setLoggedIn}
+                />
+              ) : (
+                <Navigate to="/home" replace />
+              )
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
 
-        <Route
-          path="/settings"
-          element={
-            <Settings
-              username={username}
-              setUsername={setUsername}
-              setAvatar={setAvatar}
-              avatar={avatar}
-              setLoggedIn={setLoggedIn}
-              msg={msg}
-              setMsg={setMsg}
+        {user && (
+          <>
+            <Route
+              path="/profile-setup/:mode"
+              element={
+                <NoDirectAccess>
+                  <ProfileSetup
+                    avatar={avatar}
+                    setAvatar={setAvatar}
+                    username={username}
+                    setUsername={setUsername}
+                    setLoggedIn={setLoggedIn}
+                    msg={msg}
+                    setMsg={setMsg}
+                  />
+                </NoDirectAccess>
+              }
             />
-          }
-        />
 
-        <Route
-          path="/update-settings/:mode/:step"
-          element={<SettingsUpdate msg={msg} setMsg={setMsg} />}
-        />
-
-        <Route
-          path="/home"
-          element={
-            <HomeScreen
-              setCategory={setCategory}
-              setQuizStart={setQuizStart}
-              setStatus={setStatus}
-              setQuestionNumber={setQuestionNumber}
-              setDifficulty={setDifficulty}
-              setType={setType}
-              loggedIn={loggedIn}
-              setLoggedIn={setLoggedIn}
-              username={username}
-              setUsername={setUsername}
-              avatar={avatar}
-              setAvatar={setAvatar}
-              open={open}
-              setOpen={setOpen}
+            <Route
+              path="/profile"
+              element={
+                <Profile
+                  avatar={avatar}
+                  setAvatar={setAvatar}
+                  username={username}
+                  setUsername={setUsername}
+                  loggedIn={loggedIn}
+                  setLoggedIn={setLoggedIn}
+                />
+              }
             />
-          }
-        />
 
-        <Route
-          path="/category"
-          element={<CategoryDisplay setCategory={setCategory} />}
-        />
-
-        <Route
-          path="/subcategory/:category"
-          element={
-            <SubCategoryDisplay
-              category={category}
-              setCategory={setCategory}
-              setSubCategory={setSubCategory}
-              setCategoryId={setCategoryId}
+            <Route
+              path="/settings"
+              element={
+                !user.isAnonymous ? (
+                  <Settings
+                    username={username}
+                    setUsername={setUsername}
+                    setAvatar={setAvatar}
+                    avatar={avatar}
+                    setLoggedIn={setLoggedIn}
+                    msg={msg}
+                    setMsg={setMsg}
+                  />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
+              }
             />
-          }
-        />
+
+            <Route
+              path="/update-settings/:mode/:step"
+              element={
+                <NoDirectAccess>
+                  <SettingsUpdate msg={msg} setMsg={setMsg} />
+                </NoDirectAccess>
+              }
+            />
+
+            <Route
+              element={
+                <MainLayout
+                  setQuizStart={setQuizStart}
+                  setStatus={setStatus}
+                  setQuestionNumber={setQuestionNumber}
+                  setDifficulty={setDifficulty}
+                  setType={setType}
+                  loggedIn={loggedIn}
+                  setLoggedIn={setLoggedIn}
+                  loading={loading}
+                  setLoading={setLoading}
+                  avatar={avatar}
+                  setAvatar={setAvatar}
+                />
+              }
+            >
+              <Route
+                path="/home"
+                element={
+                  <HomeScreen
+                    setCategory={setCategory}
+                    setQuizStart={setQuizStart}
+                    setStatus={setStatus}
+                    setQuestionNumber={setQuestionNumber}
+                    setDifficulty={setDifficulty}
+                    setType={setType}
+                    loggedIn={loggedIn}
+                    setLoggedIn={setLoggedIn}
+                    username={username}
+                    setUsername={setUsername}
+                    avatar={avatar}
+                    setAvatar={setAvatar}
+                    loading={loading}
+                    setLoading={setLoading}
+                  />
+                }
+              />
+
+              <Route
+                path="/category"
+                element={<CategoryDisplay setCategory={setCategory} />}
+              />
+
+              <Route
+                path="/subcategory/:category"
+                element={
+                  <SubCategoryDisplay
+                    category={category}
+                    setCategory={setCategory}
+                    setSubCategory={setSubCategory}
+                    setCategoryId={setCategoryId}
+                  />
+                }
+              />
+
+              <Route
+                path="/start/:category/:subCategory?/:categoryId"
+                element={
+                  <StartQuizScreen
+                    category={category}
+                    setCategory={setCategory}
+                    subCategory={subCategory}
+                    setSubCategory={setSubCategory}
+                    setCategoryId={setCategoryId}
+                    setQuestionNumber={setQuestionNumber}
+                    setDifficulty={setDifficulty}
+                    setType={setType}
+                    setQuizStart={setQuizStart}
+                    setStatus={setStatus}
+                    setQuestionCurrentIndex={setQuestionCurrentIndex}
+                    setCurrentOption={setCurrentOption}
+                    setUserAnswers={setUserAnswers}
+                    setQuizId={setQuizId}
+                  />
+                }
+              />
+
+              <Route
+                path="/quiz"
+                element={
+                  <NoDirectAccess>
+                    <QuizScreen
+                      questions={questions}
+                      setQuizStart={setQuizStart}
+                      setQuestionNumber={setQuestionNumber}
+                      setDifficulty={setDifficulty}
+                      setType={setType}
+                      questionCurrentIndex={questionCurrentIndex}
+                      setQuestionCurrentIndex={setQuestionCurrentIndex}
+                      currentOption={currentOption}
+                      setCurrentOption={setCurrentOption}
+                      setUserAnswers={setUserAnswers}
+                      status={status}
+                      category={category}
+                      setCategory={setCategory}
+                      subCategory={subCategory}
+                      setSubCategory={setSubCategory}
+                    />
+                  </NoDirectAccess>
+                }
+              />
+
+              <Route
+                path="/results/:category/:subCategory?"
+                element={
+                  <NoDirectAccess>
+                    <ResultsScreen
+                      questionNumber={questionNumber}
+                      questions={questions}
+                      userAnswers={userAnswers}
+                      difficulty={difficulty}
+                      setQuizStart={setQuizStart}
+                      setQuestionCurrentIndex={setQuestionCurrentIndex}
+                      setCurrentOption={setCurrentOption}
+                      setUserAnswers={setUserAnswers}
+                      quizId={quizId}
+                      setQuizId={setQuizId}
+                      category={category}
+                      setCategory={setCategory}
+                      subCategory={subCategory}
+                      setSubCategory={setSubCategory}
+                    />
+                  </NoDirectAccess>
+                }
+              />
+
+              <Route
+                path="/answers"
+                element={
+                  <NoDirectAccess>
+                    <AnswersComparison
+                      questions={questions}
+                      userAnswers={userAnswers}
+                    />
+                  </NoDirectAccess>
+                }
+              />
+            </Route>
+          </>
+        )}
 
         <Route
-          path="/start/:category/:subCategory?/:categoryId"
-          element={
-            <StartQuizScreen
-              category={category}
-              setCategory={setCategory}
-              subCategory={subCategory}
-              setSubCategory={setSubCategory}
-              setCategoryId={setCategoryId}
-              setQuestionNumber={setQuestionNumber}
-              setDifficulty={setDifficulty}
-              setType={setType}
-              setQuizStart={setQuizStart}
-              setStatus={setStatus}
-              setQuestionCurrentIndex={setQuestionCurrentIndex}
-              setCurrentOption={setCurrentOption}
-              setUserAnswers={setUserAnswers}
-            />
-          }
+          path="*"
+          element={<Navigate to={user ? "/home" : "/"} replace />}
         />
-
-        <Route
-          path="/quiz"
-          element={
-            <QuizScreen
-              questions={questions}
-              setQuizStart={setQuizStart}
-              setQuestionNumber={setQuestionNumber}
-              setDifficulty={setDifficulty}
-              setType={setType}
-              questionCurrentIndex={questionCurrentIndex}
-              setQuestionCurrentIndex={setQuestionCurrentIndex}
-              currentOption={currentOption}
-              setCurrentOption={setCurrentOption}
-              setUserAnswers={setUserAnswers}
-              status={status}
-            />
-          }
-        />
-
-        <Route
-          path="/results"
-          element={
-            <ResultsScreen
-              questionNumber={questionNumber}
-              questions={questions}
-              userAnswers={userAnswers}
-              setQuizStart={setQuizStart}
-              setQuestionCurrentIndex={setQuestionCurrentIndex}
-              setCurrentOption={setCurrentOption}
-              setUserAnswers={setUserAnswers}
-            />
-          }
-        />
-
-        <Route
-          path="/answers"
-          element={
-            <AnswersComparison
-              questions={questions}
-              userAnswers={userAnswers}
-            />
-          }
-        />
-
-        <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </>
   );
