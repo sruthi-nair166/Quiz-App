@@ -5,11 +5,12 @@ import {
   reauthenticateWithCredential,
   updatePassword,
   verifyBeforeUpdateEmail,
-  reload,
   onAuthStateChanged,
-  signOut,
 } from "firebase/auth";
 import { auth } from "../firebase.js";
+import styles from "../styles/AuthPage.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 export default function SettingsUpdate({ msg, setMsg }) {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ export default function SettingsUpdate({ msg, setMsg }) {
   const newEmailRef = useRef();
   const newPasswordRef = useRef();
   const newPasswordConfirmRef = useRef();
-  const [verificationSent, setVerificationSent] = useState(false);
   const [user, setUser] = useState(auth.currentUser);
 
   useEffect(() => {
@@ -28,13 +28,6 @@ export default function SettingsUpdate({ msg, setMsg }) {
 
     return () => unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (verificationSent && user === null) {
-      setMsg("Email successfully updated. Please log in with your new email.");
-      navigate("/auth/login");
-    }
-  }, [verificationSent, user]);
 
   const handlePasswordVerification = () => {
     const credential = EmailAuthProvider.credential(
@@ -60,6 +53,14 @@ export default function SettingsUpdate({ msg, setMsg }) {
     currentPasswordRef.current.value = "";
   };
 
+  useEffect(() => {
+    if (user === null) {
+      setMsg("Email successfully updated. Redirecting to login...");
+      const timer = setTimeout(() => navigate("/auth/login"), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
+
   const handleEmailUpdate = () => {
     if (newEmailRef.current.value === user.email) {
       setMsg("This is your current email.");
@@ -71,10 +72,14 @@ export default function SettingsUpdate({ msg, setMsg }) {
         setMsg(
           "A verification link will be sent if this email can be used. Please check your inbox to complete updating email."
         );
-        setVerificationSent(true);
+
+        setTimeout(() => {
+          setMsg(
+            "After verification, refresh the page to log in with your new account."
+          );
+        }, 10000);
       })
       .catch((err) => {
-        setVerificationSent(false);
         console.log(err);
         if (err.code === "auth/email-already-in-use") {
           setMsg("This email already exists");
@@ -85,22 +90,6 @@ export default function SettingsUpdate({ msg, setMsg }) {
         }
       });
     newEmailRef.current.value = "";
-  };
-
-  const handleContinue = async () => {
-    if (!verificationSent) return;
-
-    try {
-      await reload(user);
-
-      if (newEmailRef.current.value === user.email) {
-        await signOut(auth);
-      } else {
-        setMsg("Please verify your email before continuing.");
-      }
-    } catch (err) {
-      console.log(err);
-    }
   };
 
   const minLength = 6;
@@ -139,97 +128,141 @@ export default function SettingsUpdate({ msg, setMsg }) {
   return (
     <>
       <button
+        className="back"
+        style={{ color: "white" }}
         onClick={() => {
           setMsg("");
           navigate(-1);
         }}
       >
-        Back
+        <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      {step === "verify" ? (
-        <>
-          <p>{msg}</p>
-          <p>Verify your password</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handlePasswordVerification();
-            }}
-          >
-            <input
-              type="password"
-              placeholder="Enter current password"
-              ref={currentPasswordRef}
-              required
-            />
-            <button type="submit">Continue</button>
-          </form>
-        </>
-      ) : (
-        ""
-      )}
-      {mode === "change-email" && step === "update" ? (
-        <>
-          <p>{msg}</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.nativeEvent.submitter.id === "verification"
-                ? handleEmailUpdate()
-                : handleContinue();
-            }}
-          >
-            <input
-              type="email"
-              placeholder="Enter new email"
-              ref={newEmailRef}
-              required
-            />
-            {!verificationSent ? (
-              <button id="verification" type="submit">
-                Send verification link
+
+      <div className={styles["auth-wrapper"]}>
+        {step === "verify" && (
+          <div className={styles["auth-sub-wrapper"]}>
+            <h1 className="heading-text" style={{ textAlign: "center" }}>
+              Verify your password
+            </h1>
+            <p className="msg text-medium">{msg}</p>
+            <form
+              className={styles["form-wrapper"]}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handlePasswordVerification();
+              }}
+            >
+              <div className={styles["input-wrapper"]}>
+                <label className="text-medium" htmlFor="currentPassword">
+                  Enter current password:
+                </label>
+                <input
+                  id="currentPassword"
+                  className="input block text-medium"
+                  type="password"
+                  placeholder="Enter current password"
+                  ref={currentPasswordRef}
+                  required
+                />
+              </div>
+              <button
+                style={{ paddingTop: "0.5rem", paddingBottom: "0" }}
+                className={`${styles["forgot-password"]} text-medium`}
+                type="button"
+                onClick={() => navigate("/auth/password-reset")}
+              >
+                Forgot Password?
               </button>
-            ) : (
-              <button type="submit">Continue to login</button>
-            )}
-          </form>
-          <p>
-            Did not receive verification link?{" "}
-            <button type="button" onClick={handleEmailUpdate}>
-              Resend verification link
-            </button>
-          </p>
-        </>
-      ) : (
-        ""
-      )}
-      {mode === "change-password" && step === "update" ? (
-        <>
-          <p>{msg}</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handlePasswordUpdate();
-            }}
-          >
-            <input
-              type="password"
-              placeholder="Enter new password"
-              ref={newPasswordRef}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Confirm new password"
-              ref={newPasswordConfirmRef}
-              required
-            />
-            <button type="submit">Update Password</button>
-          </form>
-        </>
-      ) : (
-        ""
-      )}
+              <div className={styles["auth-btn-wrapper"]}>
+                <button className={styles["auth-btn"]} type="submit">
+                  Continue
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {mode === "change-email" && step === "update" && (
+          <div className={styles["auth-sub-wrapper"]}>
+            <h1 className="heading-text" style={{ textAlign: "center" }}>
+              Set your new email
+            </h1>
+            <p className="msg text-medium">{msg}</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEmailUpdate();
+              }}
+            >
+              <div className={styles["input-wrapper"]}>
+                <label className="text-medium" htmlFor="newEmail">
+                  Enter new email:
+                </label>
+                <input
+                  className="input block text-medium"
+                  id="newEmail"
+                  type="email"
+                  placeholder="Enter new email"
+                  ref={newEmailRef}
+                  required
+                />
+              </div>
+              <div className={styles["auth-btn-wrapper"]}>
+                <button className={styles["auth-btn"]} type="submit">
+                  Send verification link
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {mode === "change-password" && step === "update" && (
+          <div className={styles["auth-sub-wrapper"]}>
+            <h1 className="heading-text" style={{ textAlign: "center" }}>
+              Set your new password
+            </h1>
+            <p className=" text-medium">{msg}</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handlePasswordUpdate();
+              }}
+            >
+              <div className={styles["form-wrapper"]}>
+                <div className={styles["input-wrapper"]}>
+                  <label className="text-medium" htmlFor="newPassword">
+                    Enter new password:
+                  </label>
+                  <input
+                    className="input block text-medium"
+                    id="newPassword"
+                    type="password"
+                    placeholder="Enter new password"
+                    ref={newPasswordRef}
+                    required
+                  />
+                </div>
+                <div className={styles["input-wrapper"]}>
+                  <label className="text-medium">Confirm new password:</label>
+                  <input
+                    className="input block text-medium"
+                    id="confirmNewPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    ref={newPasswordConfirmRef}
+                    required
+                  />
+                </div>
+              </div>
+              <div className={styles["auth-btn-wrapper"]}>
+                <button className={styles["auth-btn"]} type="submit">
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
     </>
   );
 }

@@ -10,6 +10,14 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import styles from "../styles/ResultsScreen.module.css";
+import categories from "../data/categories.js";
+import trophy from "../assets/others/trophy.svg";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import titleCaseConverter from "../utils/titleCaseConverter.js";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 export default function ResultsScreen({
   questionNumber,
@@ -17,6 +25,7 @@ export default function ResultsScreen({
   userAnswers,
   difficulty,
   setQuizStart,
+  questionCurrentIndex,
   setQuestionCurrentIndex,
   setCurrentOption,
   setUserAnswers,
@@ -37,7 +46,14 @@ export default function ResultsScreen({
   const user = auth.currentUser;
   const totalQuestions = questions.length;
   const categoryKey = subCategory ? subCategory : category;
-  const [openDialog, setOpenDialog] = useState("close");
+  const { width, height } = useWindowSize();
+
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(false), 5000); // stop after 3s
+    return () => clearTimeout(timer);
+  }, []);
 
   localStorage.setItem("quizTakerAnswers", JSON.stringify(userAnswers));
 
@@ -52,16 +68,12 @@ export default function ResultsScreen({
   });
 
   useEffect(() => {
-    if (score === questions.length) setOpenDialog("open");
-  }, [score]);
-
-  useEffect(() => {
     if (categoryParam) setCategory(categoryParam);
     if (subCategoryParam) setSubCategory(subCategoryParam);
   }, [categoryParam, subCategoryParam]);
 
   useEffect(() => {
-    if (!quizId) return;
+    if (!quizId || questionCurrentIndex !== questions.length - 1) return;
 
     const alreadySaved = localStorage.getItem(`saved_${quizId}`);
     if (alreadySaved) return;
@@ -116,57 +128,121 @@ export default function ResultsScreen({
 
   return (
     <>
-      <button type="button" onClick={() => navigate(-1)}>
-        Back
-      </button>
+      <div style={{ height: "3rem" }}>
+        <button
+          className={`back ${styles["back-positioning"]}`}
+          type="button"
+          onClick={() => navigate(-1)}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+        </button>
+      </div>
 
-      {openDialog === "open" && (
-        <>
-          <button onClick={() => setOpenDialog("close")}>close</button>
-          <p>Congratulations!</p>
-          <p>You have answered all questions correctly!</p>
-        </>
-      )}
+      <div className={styles["results-screen-wrapper"]}>
+        {showConfetti ? (
+          <Confetti width={width} height={height} numberOfPieces={200} />
+        ) : null}
+        {subCategory ? (
+          <h1 className="heading-text">{titleCaseConverter(subCategory)}</h1>
+        ) : (
+          <h1 className="heading-text">{titleCaseConverter(category)}</h1>
+        )}
+        <div className={styles["results-card"]}>
+          <div style={{ color: "white" }}>
+            <p>
+              You have scored{" "}
+              <span className="text-bold text-medium-2">{score} points</span>
+            </p>
+            <p>out of {questions.length} questions</p>
+          </div>
 
-      <h1>Results</h1>
-      <p>You have scored {score} points</p>
+          <img src={trophy} alt="trophy" style={{ maxWidth: "150px" }} />
 
-      <button
-        onClick={() => navigate("/answers", { state: { fromInsideApp: true } })}
-      >
-        Check Correct Answers
-      </button>
+          <button
+            className={`${styles["check-answers-btn"]} text-medium`}
+            onClick={() =>
+              navigate(
+                `/answers/${encodeURIComponent(category)}/${encodeURIComponent(
+                  subCategory
+                )}`,
+                { state: { score, fromInsideApp: true } }
+              )
+            }
+          >
+            Check Correct Answers
+          </button>
+        </div>
+        <div className={styles.stats}>
+          <div>
+            <p style={{ color: "grey" }} className="uppercase text-small">
+              Correct Answer
+            </p>
+            <p
+              className="text-bold text-medium-2"
+              style={{ fontSize: "1.1rem" }}
+            >
+              {score} questions
+            </p>
+          </div>
 
-      <p>Correct Answer</p>
-      <p>{score} questions</p>
+          <div>
+            <p style={{ color: "grey" }} className="uppercase text-small">
+              Completion
+            </p>
+            <p className="text-bold text-medium-2">
+              {Math.round((score / questionNumber) * 100)}%
+            </p>
+          </div>
 
-      <p>Completion</p>
-      <p>{Math.round((score / questionNumber) * 100)}%</p>
+          <div>
+            <p style={{ color: "grey" }} className="uppercase text-small">
+              Skipped
+            </p>
+            <p className="text-bold text-medium-2">{skipped}</p>
+          </div>
 
-      <p>Skipped</p>
-      <p>{skipped}</p>
+          <div>
+            <p style={{ color: "grey" }} className="uppercase text-small">
+              Incorrect Answer
+            </p>
+            <p className="text-bold text-medium-2">{wrong}</p>
+          </div>
+        </div>
+        <div className={`${styles["btn-wrapper"]} text-medium`}>
+          <button
+            className="btn"
+            onClick={() => {
+              const newQuizId =
+                Date.now().toString() + Math.random().toString(36).slice(2);
 
-      <p>Incorrect Answer</p>
-      <p>{wrong}</p>
+              setQuizId(newQuizId);
+              localStorage.setItem("currentQuizId", newQuizId);
+              localStorage.removeItem(`saved_${newQuizId}`);
 
-      <button
-        onClick={() => {
-          const newQuizId =
-            Date.now().toString() + Math.random().toString(36).slice(2);
+              setQuizStart(true);
+              setQuestionCurrentIndex(0);
+              setCurrentOption(null);
+              setUserAnswers({});
 
-          setQuizId(newQuizId);
-          localStorage.setItem("currentQuizId", newQuizId);
+              const url = subCategory
+                ? `/start/${encodeURIComponent(category)}/${encodeURIComponent(
+                    subCategory
+                  )}/${encodeURIComponent(categories[category][subCategory])}`
+                : `/start/${encodeURIComponent(category)}/${encodeURIComponent(
+                    categories[category]
+                  )}`;
 
-          setQuizStart(true);
-          setQuestionCurrentIndex(0);
-          setCurrentOption(null);
-          setUserAnswers({});
+              navigate(url, { state: { from: "retake" } });
+            }}
+          >
+            Retake Quiz
+          </button>
 
-          navigate("/quiz", { state: { fromInsideApp: true } });
-        }}
-      >
-        Retake Quiz
-      </button>
+          <button className="btn" onClick={() => navigate("/home")}>
+            Return to Home
+          </button>
+        </div>
+      </div>
     </>
   );
 }

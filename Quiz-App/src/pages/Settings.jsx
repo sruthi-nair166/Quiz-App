@@ -10,6 +10,16 @@ import {
 } from "firebase/firestore";
 import { signOut, onAuthStateChanged, deleteUser } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import styles from "../styles/Settings.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChevronRight,
+  faRightFromBracket,
+} from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import { CloseButton, Dialog, Portal } from "@chakra-ui/react";
+import titleCaseConverter from "../utils/titleCaseConverter.js";
 
 export default function Settings({
   username,
@@ -20,8 +30,6 @@ export default function Settings({
   msg,
   setMsg,
 }) {
-  const [clearData, setClearData] = useState(false);
-  const [delAccount, setDelAccount] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -47,6 +55,7 @@ export default function Settings({
           const data = docSnap.data();
           setUsername(`${data.adj} ${data.animal}` || "");
           setAvatar(data.avatar || null);
+          setLoggedIn(true);
         } else {
           setUser(null);
           setUsername(null);
@@ -101,8 +110,10 @@ export default function Settings({
     });
 
     deleteUser(user)
-      .then(() => console.log("Your account has been deleted"))
-      .then(() => navigate("/"))
+      .then(() => {
+        console.log("Your account has been deleted");
+        navigate("/");
+      })
       .catch((err) => {
         if (err.code === "auth/requires-recent-login") {
           signOut(auth).then(() => {
@@ -121,88 +132,230 @@ export default function Settings({
 
   return (
     <>
-      <button onClick={() => navigate(-1)}>Back</button>
-
       <button
-        onClick={() => {
-          navigate("/profile-setup/change-username", {
-            state: { fromInsideApp: true },
-          });
+        onClick={() => navigate("/home")}
+        className="hide-on-mobile"
+        style={{
+          position: "relative",
+          top: "10px",
+          left: "15px",
+          paddingBottom: "15px",
         }}
       >
-        Username {username}
-      </button>
-      <button
-        onClick={() => {
-          navigate("/profile-setup/change-avatar", {
-            state: { fromInsideApp: true },
-          });
-        }}
-      >
-        Avatar <img src={avatar} width="30px" />
-      </button>
-      <button
-        onClick={() => {
-          setMsg("");
-          navigate("/update-settings/change-email/verify", {
-            state: { fromInsideApp: true },
-          });
-        }}
-      >
-        Email {user ? user.email : "Loading..."}
-      </button>
-      <button
-        onClick={() => {
-          setMsg("");
-          navigate("/update-settings/change-password/verify", {
-            state: { fromInsideApp: true },
-          });
-        }}
-      >
-        Password
+        <img src="favicon_invert.png" alt="" style={{ width: "50px" }} />
       </button>
 
-      <button onClick={handleLogout}>Logout</button>
-      <button onClick={() => setClearData(true)}>Clear Data</button>
-      {clearData ? (
-        <>
-          <p>
-            Warning: Choosing the following will clear all your progress. Do you
-            still want to proceed?
-          </p>
-          <button onClick={() => setClearData(false)}>Cancel</button>
+      <div className={styles["settings-wrapper"]}>
+        <div className={styles.header}>
           <button
+            className="back"
+            style={{ left: "10px", color: "white" }}
+            onClick={() => navigate(-1)}
+          >
+            <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+          </button>
+          <h2 className={`${styles.title} heading-text`}>Settings</h2>
+        </div>
+
+        <div
+          style={{
+            backgroundColor: "white",
+            border: "none",
+            borderRadius: "1rem",
+          }}
+        >
+          <button
+            className={styles["btn-flex"]}
             onClick={() => {
-              handleClearData();
-              setClearData(false);
-              setMsg("");
+              navigate("/profile-setup/change-username", {
+                state: { fromInsideApp: true },
+              });
             }}
           >
-            Clear Data
+            <span>Username</span>{" "}
+            <span className="text-medium" style={{ color: "grey" }}>
+              {titleCaseConverter(username)}
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                color="var(--dark-purple)"
+              />
+            </span>
           </button>
-        </>
-      ) : (
-        ""
-      )}
-      <button onClick={() => setDelAccount(true)}>Delete Account</button>
-      {delAccount ? (
-        <>
-          <p>Are you sure you want to delete your account?</p>
-          <button onClick={() => setDelAccount(false)}>Cancel</button>
           <button
+            className={styles["btn-flex"]}
             onClick={() => {
-              handleDeleteData();
-              setDelAccount(false);
-              setMsg("");
+              navigate("/profile-setup/change-avatar", {
+                state: { fromInsideApp: true },
+              });
             }}
           >
-            Delete
+            <span>Avatar</span>
+            <span style={{ display: "flex", alignItems: "center" }}>
+              <img src={avatar} width="30px" style={{ borderRadius: "50%" }} />
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                color="var(--dark-purple)"
+              />
+            </span>
           </button>
-        </>
-      ) : (
-        ""
-      )}
-      {msg ? <p>{msg}</p> : ""}
+          <button
+            className={styles["btn-flex"]}
+            onClick={() => {
+              setMsg("");
+              navigate("/update-settings/change-email/verify", {
+                state: { fromInsideApp: true },
+              });
+            }}
+          >
+            <span>Email</span>{" "}
+            <span style={{ color: "grey" }} className="text-medium">
+              {user ? `${user.email.slice(0, 17)}...` : "Loading..."}{" "}
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                color="var(--dark-purple)"
+              />
+            </span>
+          </button>
+          <button
+            className={styles["btn-flex"]}
+            onClick={() => {
+              setMsg("");
+              navigate("/update-settings/change-password/verify", {
+                state: { fromInsideApp: true },
+              });
+            }}
+          >
+            Password
+            <FontAwesomeIcon icon={faChevronRight} color="var(--dark-purple)" />
+          </button>
+
+          <Dialog.Root
+            role="alertdialog"
+            placement="center"
+            motionPreset="slide-in-bottom"
+          >
+            <Dialog.Trigger asChild>
+              <button className={styles["btn-flex"]}>
+                Clear Data{" "}
+                <FontAwesomeIcon
+                  icon={faChevronRight}
+                  color="var(--dark-purple)"
+                />
+              </button>
+            </Dialog.Trigger>
+
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content className="dialog-content">
+                  <Dialog.Header asChild>
+                    <Dialog.Title>Warning!</Dialog.Title>
+                  </Dialog.Header>
+                  <Dialog.Body>
+                    Choosing the following will clear all your progress. Do you
+                    still want to proceed?
+                  </Dialog.Body>
+
+                  <Dialog.Footer>
+                    <Dialog.ActionTrigger asChild>
+                      <button className="btn">Cancel</button>
+                    </Dialog.ActionTrigger>
+                    <Dialog.ActionTrigger asChild>
+                      <button
+                        className="btn"
+                        onClick={() => {
+                          handleClearData();
+                          setMsg("");
+                        }}
+                      >
+                        Clear Data
+                      </button>
+                    </Dialog.ActionTrigger>
+                  </Dialog.Footer>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
+
+          <Dialog.Root
+            role="alertdialog"
+            placement="center"
+            motionPreset="slide-in-bottom"
+          >
+            <Dialog.Trigger asChild>
+              <button className={styles["btn-flex"]}>
+                Delete Account{" "}
+                <FontAwesomeIcon
+                  icon={faChevronRight}
+                  color="var(--dark-purple)"
+                />
+              </button>
+            </Dialog.Trigger>
+
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner>
+                <Dialog.Content className="dialog-content">
+                  <Dialog.Body className="text-bold">
+                    Are you sure you want to delete your account?
+                  </Dialog.Body>
+
+                  <Dialog.Footer>
+                    <Dialog.ActionTrigger asChild>
+                      <button className="btn">Cancel</button>
+                    </Dialog.ActionTrigger>
+                    <Dialog.ActionTrigger asChild>
+                      <button
+                        className="btn"
+                        onClick={() => {
+                          setLoggedIn(false);
+                          setMsg("Account has been deleted.");
+                          handleDeleteData();
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </Dialog.ActionTrigger>
+                  </Dialog.Footer>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
+
+          <button
+            style={{ border: "none" }}
+            className={styles["btn-flex"]}
+            onClick={handleLogout}
+          >
+            Logout{" "}
+            <FontAwesomeIcon
+              icon={faRightFromBracket}
+              color="var(--dark-purple)"
+            />
+          </button>
+        </div>
+
+        <Dialog.Root
+          placement="center"
+          motionPreset="slide-in-bottom"
+          open={msg}
+          onOpenChange={(isOpen) => {
+            if (isOpen) setMsg(isOpen.msg);
+          }}
+        >
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content className="dialog-content">
+                <Dialog.Body>{msg}</Dialog.Body>
+                <Dialog.CloseTrigger>
+                  <CloseButton />
+                </Dialog.CloseTrigger>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
+      </div>
     </>
   );
 }

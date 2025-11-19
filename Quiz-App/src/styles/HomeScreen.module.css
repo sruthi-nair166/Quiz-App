@@ -1,0 +1,226 @@
+.home-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  background-color: var(--purple);
+}
+
+.greeting-display-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 1rem 0 1rem;
+}
+
+.text-color {
+  color: white;
+}
+
+.quiz-cards-wrapper {
+  display: grid;
+}
+
+.recent-quiz-card-skeleton {
+  height: 95px;
+}
+
+.recent-quiz-card {
+  background-color: var(--light-pink);
+  border-radius: 1.5rem;
+  margin: 1rem;
+  padding: 1rem;
+}
+
+.recent-quiz-btn {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.pie-chart {
+  height: 60px;
+  width: 60px;
+}
+
+.percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+}
+
+.random-quiz-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  background-color: #aca5eb;
+  border-radius: 1.5rem;
+  min-height: 200px;
+  position: relative;
+  margin: 0 1rem 1rem 1rem;
+  padding: 1rem;
+}
+
+.random-quiz-card img {
+  height: 3rem;
+  width: 3rem;
+  border-radius: 50%;
+  padding: 0.5rem;
+}
+
+.random-quiz-card button {
+  width: 30%;
+  color: var(--purple);
+  background-color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.2rem;
+}
+
+.random-quiz-card button:hover {
+  background-color: var(--purple);
+  color: white;
+}
+
+.category-cards-wrapper {
+  background-color: white;
+  border-radius: 2rem 2rem 0 0;
+  padding: 1rem;
+  flex-grow: 1;
+}
+
+.category-cards-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(var(--quiz-rows), 1fr);
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 60px;
+}
+
+@media (max-width: 613px) {
+  .category-cards-container button:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+@media (min-height: 800px) and (max-width: 613px) {
+  .category-cards-container button:nth-child(n + 3) {
+    display: flex;
+  }
+
+  .category-cards-container button:nth-child(n + 5) {
+    display: none;
+  }
+
+  .category-cards-container {
+    grid-template-rows: repeat(2, 1fr);
+  }
+}
+
+@media (min-height: 954px) and (max-width: 613px) {
+  .category-cards-container button:nth-child(n + 5) {
+    display: flex;
+  }
+  .category-cards-container button:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+@media (min-height: 1200px) and (max-width: 613px) {
+  .category-cards-container button:nth-child(n + 7) {
+    display: flex;
+  }
+}
+
+@media (min-width: 614px) {
+  .category-cards-container button:nth-child(n + 3) {
+    display: flex;
+  }
+  .category-cards-container button:nth-child(n + 5) {
+    display: none;
+  }
+  .category-cards-container {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(var(--quiz-rows), 1fr);
+  }
+}
+
+@media (min-width: 614px) and (min-height: 560px) {
+  .category-cards-container button:nth-child(n + 3) {
+    display: flex;
+  }
+  .category-cards-container {
+    grid-template-rows: repeat(2, 1fr);
+  }
+}
+
+.category-card {
+  min-height: 150px;
+  background-color: var(--light-purple);
+  color: var(--dark-purple);
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-card:hover {
+  background-color: var(--dark-pink);
+  color: white;
+}
+
+.icons {
+  font-size: 3rem;
+  color: var(--dark-purple);
+  background-color: white;
+  padding: 0.3rem;
+  margin-bottom: 5px;
+  border-radius: 1rem;
+}
+
+.icon {
+  height: 0.8rem;
+  width: 0.8rem;
+  filter: invert(1) sepia(1) saturate(500%) hue-rotate(245deg) brightness(0.8);
+}
+
+.category-card:hover .icons {
+  background-color: var(--pink);
+  color: white;
+}
+
+@media (min-width: 614px) {
+  .greeting-display-wrapper {
+    padding-top: 1rem;
+  }
+  .home-wrapper {
+    background-color: #f1f1f1;
+  }
+  .text-color {
+    color: var(--purple);
+  }
+  .quiz-cards-wrapper {
+    grid-template-columns: 1fr 2fr;
+  }
+  .recent-quiz-card-skeleton {
+    height: 200px;
+  }
+  .recent-quiz-btn {
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pie-chart {
+    height: 100px;
+    width: 100px;
+  }
+  .category-cards-container {
+    padding-bottom: 0;
+  }
+}

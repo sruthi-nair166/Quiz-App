@@ -7,12 +7,22 @@ import {
   linkWithCredential,
   sendEmailVerification,
 } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import styles from "../styles/AuthPage.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
-export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
+export default function AuthPage({
+  mode: modeProp,
+  msg,
+  setMsg,
+  loggedIn,
+  setLoggedIn,
+}) {
   const { mode } = useParams();
   const modeFinal = modeProp || mode;
 
@@ -37,15 +47,19 @@ export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
       emailRef.current.value,
       passwordRef.current.value
     )
-      .then(() => {
+      .then(async () => {
         const user = auth.currentUser;
 
         if (!user.emailVerified) {
           setMsg(
-            <>
-              Please check your inbox and verify your email before continuing.
-              Didn't receive verification link?
+            <div>
+              <p>
+                Please check your inbox and verify your email before continuing.
+                Didn't receive verification link?
+              </p>
               <button
+                className="text-bold"
+                style={{ color: "var(--purple)", paddingTop: "0.5rem" }}
                 onClick={() => {
                   sendEmailVerification(user)
                     .then(() => setMsg("Verification email resent."))
@@ -56,13 +70,24 @@ export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
               >
                 Resend Verification Link
               </button>
-            </>
+            </div>
           );
           return;
         }
-        setLoggedIn(true);
-        console.log("Logged in successfully");
-        navigate("/home");
+
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setLoggedIn(true);
+          console.log("Logged in successfully");
+          navigate("/home");
+        } else {
+          console.log("redirecting to profile-setup");
+          navigate("/profile-setup/signup-avatar", {
+            state: { fromInsideApp: true },
+          });
+        }
       })
       .catch((error) => {
         if (error.code === "auth/wrong-password") {
@@ -146,12 +171,27 @@ export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
         console.error(err.code);
         setMsg("Error changing password.");
       });
-    passwordRef.current.value = "";
-    confirmPasswordRef.current.value = "";
+    emailRef.current.value = "";
   };
 
   const handleLinkAccount = () => {
     const user = auth.currentUser;
+
+    if (
+      passwordRef.current.value.length < minLength ||
+      !hasNumber.test(passwordRef.current.value) ||
+      !hasSpecialChar.test(passwordRef.current.value)
+    ) {
+      setMsg(
+        "Password must be at least 6 characters and include a number and a special character."
+      );
+      return;
+    }
+
+    if (passwordRef.current.value !== confirmPasswordRef.current.value) {
+      setMsg("Passwords do not match");
+      return;
+    }
 
     if (user && user.isAnonymous) {
       const credential = EmailAuthProvider.credential(
@@ -193,123 +233,186 @@ export default function AuthPage({ mode: modeProp, msg, setMsg, setLoggedIn }) {
   }, [modeFinal]);
 
   return (
-    <>
-      {modeFinal !== "link-account" ? (
-        <button type="button" onClick={() => handleGuestLogin()}>
-          Continue as Guest
-        </button>
-      ) : (
-        ""
-      )}
-
-      {modeFinal !== "link-account" ? <p>or</p> : ""}
-
-      {modeFinal === "link-account" ? (
-        <button onClick={() => navigate(-1)}>Back</button>
-      ) : (
-        ""
-      )}
-
-      {modeFinal === "link-account" ? (
-        <h2>Link Account</h2>
-      ) : modeFinal === "signup" ? (
-        <h2>Sign Up</h2>
-      ) : modeFinal === "password-reset" ? (
-        <h2>Password Reset</h2>
-      ) : (
-        <h2>Login</h2>
-      )}
-      <p>{msg}</p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.nativeEvent.submitter.id === "link-account"
-            ? handleLinkAccount()
-            : e.nativeEvent.submitter.id === "signup"
-            ? handleSignUp()
-            : e.nativeEvent.submitter.id === "password-reset"
-            ? handlePasswordReset()
-            : handleLogin();
-        }}
-      >
-        <label htmlFor="email">Email: </label>
-        <input
-          id="email"
-          type="email"
-          placeholder="Enter you email address"
-          ref={emailRef}
-          required
-        />
-        {modeFinal !== "password-reset" ? (
-          <>
-            <label htmlFor="password">Password: </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              ref={passwordRef}
-              required
-            />
-          </>
-        ) : (
-          ""
-        )}
-        {modeFinal === "signup" || modeFinal === "link-account" ? (
-          <>
-            <label htmlFor="confirmPassword">Confirm Password: </label>
-            <input
-              id="comfirmPassword"
-              type="password"
-              placeholder="Enter your password"
-              ref={confirmPasswordRef}
-              required
-            />
-          </>
-        ) : (
-          ""
-        )}
-        {modeFinal === "password-reset" ? (
-          <button id="password-reset" type="submit">
-            Reset Password
-          </button>
-        ) : modeFinal === "signup" || modeFinal === "link-account" ? (
+    <div>
+      {modeFinal === "link-account" ||
+        (loggedIn && (
           <button
-            id={modeFinal === "signup" ? "signup" : "link-account"}
-            type="submit"
+            className="back"
+            onClick={() => {
+              setMsg("");
+              navigate(-1);
+            }}
           >
-            Continue
+            <FontAwesomeIcon icon={faArrowLeft} color="white" />
           </button>
-        ) : (
-          <button id="login" type="submit">
-            Login
-          </button>
-        )}
-      </form>
+        ))}
+      <div className={styles["auth-wrapper"]}>
+        <div className={styles["auth-sub-wrapper"]}>
+          {!loggedIn && (
+            <>
+              <div className={styles["auth-btn-wrapper"]}>
+                <button
+                  className={styles["auth-btn"]}
+                  type="button"
+                  onClick={() => handleGuestLogin()}
+                >
+                  Continue as Guest
+                </button>
+              </div>
+              <p style={{ textAlign: "center", paddingBottom: "0.5rem" }}>or</p>
+            </>
+          )}
 
-      {modeFinal === "login" ? (
-        <button type="button" onClick={() => navigate("/auth/password-reset")}>
-          Forgot Password?
-        </button>
-      ) : (
-        ""
-      )}
-      {modeFinal === "link-account" ? (
-        ""
-      ) : modeFinal === "signup" || modeFinal === "password-reset" ? (
-        <p>
-          Have an Account?{" "}
-          <button type="button" onClick={() => navigate("/auth/login")}>
-            Login
-          </button>
-        </p>
-      ) : (
-        <p>
-          Don't have an Account?{" "}
-          <button type="button" onClick={() => navigate("/auth/signup")}>
-            Sign Up
-          </button>
-        </p>
-      )}
-    </>
+          <div className={styles["form-wrapper"]}>
+            {modeFinal === "link-account" ? (
+              <h2 className="heading-text" style={{ textAlign: "center" }}>
+                Link Account
+              </h2>
+            ) : modeFinal === "signup" ? (
+              <h2 className="heading-text" style={{ textAlign: "center" }}>
+                Sign Up
+              </h2>
+            ) : modeFinal === "password-reset" ? (
+              <h2 className="heading-text" style={{ textAlign: "center" }}>
+                Password Reset
+              </h2>
+            ) : (
+              <h2 className="heading-text" style={{ textAlign: "center" }}>
+                Login
+              </h2>
+            )}
+            <p className="msg text-medium">{msg}</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.nativeEvent.submitter.id === "link-account"
+                  ? handleLinkAccount()
+                  : e.nativeEvent.submitter.id === "signup"
+                  ? handleSignUp()
+                  : e.nativeEvent.submitter.id === "password-reset"
+                  ? handlePasswordReset()
+                  : handleLogin();
+              }}
+            >
+              <div className={styles["input-wrapper"]}>
+                <label className="block text-medium" htmlFor="email">
+                  Email:{" "}
+                </label>
+                <input
+                  className="input block text-medium"
+                  id="email"
+                  type="email"
+                  placeholder="Enter you email address"
+                  ref={emailRef}
+                  required
+                />
+              </div>
+              {modeFinal !== "password-reset" && (
+                <div className={styles["input-wrapper"]}>
+                  <label className="block text-medium" htmlFor="password">
+                    Password:{" "}
+                  </label>
+                  <input
+                    className="input block text-medium"
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    ref={passwordRef}
+                    required
+                  />
+                </div>
+              )}
+
+              {(modeFinal === "signup" || modeFinal === "link-account") && (
+                <div className={styles["input-wrapper"]}>
+                  <label
+                    className="block text-medium"
+                    htmlFor="confirmPassword"
+                  >
+                    Confirm Password:{" "}
+                  </label>
+                  <input
+                    className="input block text-medium"
+                    id="comfirmPassword"
+                    type="password"
+                    placeholder="Enter your password"
+                    ref={confirmPasswordRef}
+                    required
+                  />
+                </div>
+              )}
+
+              {modeFinal === "password-reset" ? (
+                <div className={styles["auth-btn-wrapper"]}>
+                  <button
+                    className={styles["auth-btn"]}
+                    id="password-reset"
+                    type="submit"
+                  >
+                    Reset Password
+                  </button>
+                </div>
+              ) : modeFinal === "signup" || modeFinal === "link-account" ? (
+                <div className={styles["auth-btn-wrapper"]}>
+                  <button
+                    className={styles["auth-btn"]}
+                    id={modeFinal === "signup" ? "signup" : "link-account"}
+                    type="submit"
+                  >
+                    Continue
+                  </button>
+                </div>
+              ) : (
+                <div className={styles["auth-btn-wrapper"]}>
+                  <button
+                    id="login"
+                    type="submit"
+                    className={styles["auth-btn"]}
+                  >
+                    Login
+                  </button>
+                </div>
+              )}
+            </form>
+
+            {modeFinal === "login" && (
+              <button
+                className={`${styles["forgot-password"]} text-medium`}
+                type="button"
+                onClick={() => navigate("/auth/password-reset")}
+              >
+                Forgot Password?
+              </button>
+            )}
+
+            {loggedIn || modeFinal === "link-account" ? (
+              ""
+            ) : modeFinal === "signup" || modeFinal === "password-reset" ? (
+              <p>
+                <span className="text-medium">Have an Account? </span>
+                <button
+                  style={{ color: "var(--dark-purple)" }}
+                  type="button"
+                  onClick={() => navigate("/auth/login")}
+                >
+                  Login
+                </button>
+              </p>
+            ) : (
+              <p>
+                <span className="text-medium">Don't have an Account? </span>
+                <button
+                  style={{ color: "var(--dark-purple)" }}
+                  type="button"
+                  onClick={() => navigate("/auth/signup")}
+                >
+                  Sign Up
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

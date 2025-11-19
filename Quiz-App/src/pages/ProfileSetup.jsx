@@ -5,6 +5,12 @@ import { uniqueNamesGenerator, adjectives } from "unique-names-generator";
 import profilePicSelect from "../data/ProfilePicSelect";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import styles from "../styles/ProfileSetup.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faDice } from "@fortawesome/free-solid-svg-icons";
+import titleCaseConverter from "../utils/titleCaseConverter";
+import { CloseButton, Dialog, Portal, Skeleton } from "@chakra-ui/react";
 
 export default function ProfileSetup({
   avatar,
@@ -18,6 +24,8 @@ export default function ProfileSetup({
   const [randomAdj, setRandomAdj] = useState("");
   const [newRandomAdj, setNewRandomAdj] = useState("");
   const [animalName, setAnimalName] = useState("");
+  const [nameLoading, setNameLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(msg ? true : false);
   const { mode } = useParams();
 
   const isAvatarSelect = mode === "signup-avatar" || mode === "change-avatar";
@@ -34,25 +42,32 @@ export default function ProfileSetup({
 
         if (snapshot.exists()) {
           const data = snapshot.data();
-          setRandomAdj(data.adj || "");
-          setNewRandomAdj(data.adj || "");
 
-          setAnimalName(data.animal || "");
+          const adj =
+            data?.adj ||
+            uniqueNamesGenerator({
+              dictionaries: [adjectives],
+              length: 1,
+            });
+
+          const animal = data?.animal || "";
+
+          setRandomAdj(adj);
+          setNewRandomAdj(adj);
+
+          setAnimalName(animal);
           setUsername(`${data.adj} ${data.animal}`);
 
           setAvatar(data.avatar || null);
           setSelectedAvatar(data.avatar || null);
-        } else {
-          setRandomAdj(
-            uniqueNamesGenerator({
-              dictionaries: [adjectives],
-              length: 1,
-            })
-          );
         }
       } catch (err) {
         console.error("Error fetching user data:", err);
       }
+
+      setNameLoading(true);
+      const timeout = setTimeout(() => setNameLoading(false), 2000);
+      return () => clearTimeout(timeout);
     });
 
     return () => unsubscribe();
@@ -92,112 +107,238 @@ export default function ProfileSetup({
   if (isAvatarSelect) {
     return (
       <>
-        <p>{msg}</p>
-        <p>Select an avatar</p>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[1]);
-            setAnimalName(Object.keys(profilePicSelect)[0]);
+        <Dialog.Root
+          placement="center"
+          motionPreset="slide-in-bottom"
+          open={openDialog}
+          onOpenChange={(isOpen) => {
+            if (isOpen) setOpenDialog(isOpen.openDialog);
           }}
         >
-          <img src={profilePicSelect[1]} width="70px" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[2]);
-            setAnimalName(Object.keys(profilePicSelect)[1]);
-          }}
-        >
-          <img src={profilePicSelect[2]} width="70px" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[3]);
-            setAnimalName(Object.keys(profilePicSelect)[2]);
-          }}
-        >
-          <img src={profilePicSelect[3]} width="70px" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[4]);
-            setAnimalName(Object.keys(profilePicSelect)[3]);
-          }}
-        >
-          <img src={profilePicSelect[4]} width="70px" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[5]);
-            setAnimalName(Object.keys(profilePicSelect)[4]);
-          }}
-        >
-          <img src={profilePicSelect[5]} width="70px" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedAvatar(profilePicSelect[6]);
-            setAnimalName(Object.keys(profilePicSelect)[5]);
-          }}
-        >
-          <img src={profilePicSelect[6]} width="70px" />
-        </button>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content className="dialog-content">
+                <Dialog.Body asChild>
+                  <p>{msg}</p>
+                </Dialog.Body>
+                <Dialog.CloseTrigger asChild>
+                  <CloseButton />
+                </Dialog.CloseTrigger>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
 
-        {mode === "change-avatar" && (
-          <button onClick={() => navigate(-1)}>Back</button>
-        )}
-        <button
-          disabled={selectedAvatar === avatar}
-          onClick={() => {
-            if (mode === "signup-avatar") {
-              saveUserProfile(randomAdj, animalName, selectedAvatar);
-              navigate("/profile-setup/signup-username", {
-                state: { fromInsideApp: true },
-              });
-              setMsg("");
-            } else {
-              setUsername(`${randomAdj} ${animalName}`);
-              saveUserProfile(randomAdj, animalName, selectedAvatar);
-              setMsg("New profile picture set");
-            }
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "60px",
+            position: "relative",
           }}
         >
-          {mode === "change-avatar" ? "Select" : "Continue"}
-        </button>
+          {mode === "change-avatar" && (
+            <button
+              className="back"
+              style={{ left: 0, color: "white" }}
+              onClick={() => {
+                setMsg("");
+                navigate(-1);
+              }}
+            >
+              <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+            </button>
+          )}
+          <h1
+            className="heading-text"
+            style={{
+              color: "white",
+              display: "inline",
+            }}
+          >
+            Select an avatar
+          </h1>
+        </div>
+
+        <div className={styles["select-wrapper"]}>
+          <div className={styles["avatar-wrapper"]}>
+            {Object.entries(profilePicSelect).map(([key, value]) => (
+              <button
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+                key={`${key}-${value}`}
+                onClick={() => {
+                  setSelectedAvatar(value);
+                  setAnimalName(key);
+                }}
+              >
+                <img
+                  style={{
+                    outline:
+                      selectedAvatar === value ? "7px solid var(--purple)" : "",
+                    borderRadius: "50%",
+                  }}
+                  src={value}
+                  className={styles.avatar}
+                />
+              </button>
+            ))}
+          </div>
+
+          <button
+            className={styles["select-avatar-btn"]}
+            disabled={selectedAvatar === avatar}
+            onClick={() => {
+              if (mode === "signup-avatar") {
+                saveUserProfile(randomAdj, animalName, selectedAvatar);
+                navigate("/profile-setup/signup-username", {
+                  state: { fromInsideApp: true },
+                });
+                setMsg("");
+              } else {
+                console.log("Saving profile...");
+                setUsername(`${randomAdj} ${animalName}`);
+                saveUserProfile(randomAdj, animalName, selectedAvatar);
+                setTimeout(() => {
+                  console.log("Setting message");
+                  setMsg("New profile picture set");
+                }, 300);
+              }
+            }}
+          >
+            {mode === "change-avatar" ? "Select" : "Continue"}
+          </button>
+          <footer style={{ textAlign: "center" }}>
+            <a
+              className={`${styles.credit} text-small`}
+              href="https://www.flaticon.com/free-icons/animals"
+              title="animals icons"
+              target="_blank"
+            >
+              Animals icons created by Freepik - Flaticon
+            </a>
+          </footer>
+        </div>
       </>
     );
   } else if (isUsernameSelect) {
     return (
       <>
-        <p>{msg}</p>
-        <p>
-          <span>{randomAdj}</span>
-          <button onClick={handleShuffle}>Shuffle icon</button>
-          {animalName}
-        </p>
-
-        {mode === "change-username" ? (
-          <button onClick={() => navigate(-1)}>Back</button>
-        ) : (
-          ""
-        )}
-        <button
-          disabled={randomAdj === newRandomAdj}
-          onClick={async () => {
-            setUsername(`${randomAdj} ${animalName}`);
-            saveUserProfile(randomAdj, animalName);
-
-            if (mode === "signup-username") {
-              await signOut(auth);
-              console.log("Logged out");
-              navigate("/");
-            } else {
-              setMsg("Username changed");
-            }
+        <Dialog.Root
+          placement="center"
+          motionPreset="slide-in-bottom"
+          open={openDialog}
+          onOpenChange={(isOpen) => {
+            if (isOpen) setOpenDialog(isOpen.openDialog);
           }}
         >
-          {mode === "change-username" ? "Save Changes" : "Create Account"}
-        </button>
+          <Portal>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content className="dialog-content">
+                <Dialog.Body asChild>
+                  <p>{msg}</p>
+                </Dialog.Body>
+                <Dialog.CloseTrigger asChild>
+                  <CloseButton />
+                </Dialog.CloseTrigger>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Portal>
+        </Dialog.Root>
+
+        {mode === "change-username" && (
+          <button
+            className="back"
+            style={{ color: "white" }}
+            onClick={() => {
+              navigate(-1);
+              setMsg("");
+            }}
+          >
+            <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+          </button>
+        )}
+
+        <div className={styles["select-wrapper"]}>
+          <h1
+            style={{ color: "white", paddingBottom: "1rem" }}
+            className="heading-text"
+          >
+            Choose your vibe
+          </h1>
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "1rem",
+              borderRadius: "1rem",
+              maxWidth: "450px",
+              width: "100%",
+              margin: "0 auto",
+            }}
+          >
+            <p className={styles["username-wrapper"]}>
+              <span className={styles.adj}>
+                {titleCaseConverter(randomAdj)}
+              </span>
+              <button onClick={handleShuffle}>
+                <FontAwesomeIcon
+                  icon={faDice}
+                  size="lg"
+                  color="var(--dark-purple)"
+                />
+              </button>
+              {nameLoading ? (
+                <Skeleton height="1.5rem" width="5rem" borderRadius="8px" />
+              ) : (
+                <span>{titleCaseConverter(animalName)}</span>
+              )}
+            </p>
+
+            <button
+              style={{
+                width: "100%",
+                backgroundColor:
+                  mode !== "signup-username" &&
+                  randomAdj === newRandomAdj &&
+                  "var(--hover-purple)",
+                cursor:
+                  mode !== "signup-username" &&
+                  randomAdj === newRandomAdj &&
+                  "auto",
+              }}
+              className="btn"
+              disabled={
+                mode !== "signup-username" && randomAdj === newRandomAdj
+              }
+              onClick={async () => {
+                setUsername(`${randomAdj} ${animalName}`);
+                saveUserProfile(randomAdj, animalName);
+
+                if (mode === "signup-username") {
+                  if (!user.emailVerified) {
+                    await signOut(auth);
+                    console.log("Logged out");
+                    navigate("/");
+                  } else {
+                    console.log(
+                      "Email is already verified, redirecting to home"
+                    );
+                    navigate("/home");
+                  }
+                } else {
+                  setMsg("Username changed");
+                }
+              }}
+            >
+              {mode === "change-username" ? "Save Changes" : "Create Account"}
+            </button>
+          </div>
+        </div>
       </>
     );
   }

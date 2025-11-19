@@ -10,10 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/charts": "^3.27.1",
+    "@chakra-ui/react": "^3.27.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fortawesome/free-regular-svg-icons": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
+    "@fortawesome/react-fontawesome": "^3.0.2",
     "firebase": "^12.1.0",
+    "framer-motion": "^12.23.22",
     "react": "^19.1.0",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.7.1",
+    "react-use": "^17.6.0",
+    "recharts": "^3.2.1",
     "unique-names-generator": "^4.7.1"
   },
   "devDependencies": {

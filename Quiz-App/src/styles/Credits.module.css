@@ -1,0 +1,45 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+}
+
+.title {
+  text-align: center;
+  display: inline;
+  color: white;
+}
+
+.credits-wrapper {
+  background-color: white;
+  height: calc(100vh - 100px);
+  margin: 0.5rem;
+  border-radius: 2rem 2rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.text-wrapper {
+  max-width: 400px;
+}
+
+.text-wrapper ul {
+  margin: 2rem 0.5rem 1rem 0.5rem;
+}
+
+.text-wrapper li {
+  display: flex;
+  justify-content: space-between;
+}
+
+.text-wrapper a {
+  color: var(--purple);
+}
+
+.text-wrapper a:hover {
+  color: var(--dark-purple);
+}

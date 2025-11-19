@@ -1,0 +1,14 @@
+export { default as Animals } from "./Animals";
+export { default as Art } from "./Art";
+export { default as Books } from "./Books";
+export { default as Computer } from "./Computer";
+export { default as Entertainment } from "./Entertainment";
+export { default as Film } from "./Film";
+export { default as GeneralKnowledge } from "./GeneralKnowledge";
+export { default as Geography } from "./Geography";
+export { default as History } from "./History";
+export { default as Math } from "./Math";
+export { default as Music } from "./Music";
+export { default as Mythology } from "./Mythology";
+export { default as Science } from "./Science";
+export { default as VideoGames } from "./VideoGames";

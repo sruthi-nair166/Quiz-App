@@ -1,0 +1,54 @@
+.auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.auth-sub-wrapper {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  max-width: 450px;
+  width: 100%;
+}
+
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem 0;
+}
+
+.auth-btn {
+  background-color: var(--purple);
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.auth-btn:hover {
+  background-color: var(--hover-purple);
+}
+
+.auth-btn-wrapper {
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.input-wrapper {
+  padding-top: 1rem;
+}
+
+.forgot-password {
+  text-align: left;
+  padding-bottom: 1.5rem;
+  color: var(--dark-purple);
+}
+
+@media (min-width: 614px) {
+  .auth-sub-wrapper {
+    margin: 0 auto;
+  }
+}

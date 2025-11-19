@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { signOut, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase.js";
 import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import badgeDetails from "../data/badgeDetails.js";
+import styles from "../styles/MainLayout.module.css";
+import AvatarDisplay from "../components/AvatarDisplay.jsx";
+import BadgeDialog from "../components/BadgeDialog.jsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 
 export default function MainLayout({
   setQuizStart,
@@ -19,23 +25,10 @@ export default function MainLayout({
   setLoading,
 }) {
   const navigate = useNavigate();
-  const [showGuestWarning, setShowGuestWarning] = useState(false);
-  const [open, setOpen] = useState(false);
   const [newBadge, setNewBadge] = useState(null);
   const [newBadgeTitle, setNewBadgeTitle] = useState(null);
   const [newBadgeSubtitle, setNewBadgeSubtitle] = useState(null);
   const [newBadgeDesc, setNewBadgeDesc] = useState(null);
-
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => {
-        setOpen(false);
-        setLoggedIn(false);
-        navigate("/auth/login");
-        console.log("Logged out successfully");
-      })
-      .catch((err) => console.err("Error during logout", err));
-  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -87,7 +80,7 @@ export default function MainLayout({
             value.condition(userData)
           ) {
             updates[`badges.${value.title}`] = true;
-            setNewBadge(value.unlockedUrl || "");
+            setNewBadge(value.url || "");
             setNewBadgeTitle(value.title || "");
             setNewBadgeSubtitle(value.subtitle || "");
             setNewBadgeDesc(value.winDesc || "");
@@ -104,7 +97,7 @@ export default function MainLayout({
                 v.condition(userData)
               ) {
                 updates[`badges.${value.title}.${v.subtitle}`] = true;
-                setNewBadge(v.unlockedUrl || "");
+                setNewBadge(v.url || "");
                 setNewBadgeTitle(value.title || "");
                 setNewBadgeSubtitle(v.subtitle || "");
                 setNewBadgeDesc(v.winDesc || "");
@@ -124,83 +117,56 @@ export default function MainLayout({
   }, [user]);
 
   return (
-    <>
-      <button
-        onClick={() => {
-          setQuizStart(false);
-          setStatus("idle");
-          setQuestionNumber(10);
-          setDifficulty("any");
-          setType("any");
-          navigate("/home");
-        }}
-      >
-        Home
-      </button>
-
-      {loading ? (
-        <button disabled>
-          <img src="https://placehold.net/avatar.svg" width="30px" />
+    <div className={styles.wrapper}>
+      <header className="hide-on-mobile">
+        <button
+          onClick={() => {
+            setQuizStart(false);
+            setStatus("idle");
+            setQuestionNumber(10);
+            setDifficulty("any");
+            setType("any");
+            navigate("/home");
+          }}
+        >
+          <img src="favicon.png" alt="" style={{ width: "50px" }} />
         </button>
-      ) : loggedIn ? (
-        <>
-          <button onClick={() => setOpen((prev) => !prev)}>
-            <img src={avatar} width="30px" />
-          </button>
 
-          {open && (
+        <div className={styles["login-stats-wrapper"]}>
+          {!loggedIn && (
             <>
-              <button onClick={() => navigate("/profile")}>Profile</button>
-              <button onClick={() => navigate("/settings")}>Settings</button>
-              <button onClick={handleLogout}>Logout</button>
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          <button
-            onClick={() => {
-              setShowGuestWarning(true);
-            }}
-          >
-            Login
-          </button>
-          <button onClick={() => navigate("/profile")}>Stats</button>
-          {showGuestWarning ? (
-            <>
-              <button onClick={() => setShowGuestWarning(false)}>close</button>
-              <p>You're currently playing as Guest</p>
-              <p>
-                Do you wish to link your account to save your current progress?
-              </p>
-              <button
-                onClick={() => {
-                  navigate("/auth/link-account");
-                }}
-              >
-                Link Account
+              <button className="btn" onClick={() => navigate("/credits")}>
+                <FontAwesomeIcon icon={faCircleInfo} size="lg" color="white" />
               </button>
-              <button onClick={() => navigate("/auth/login")}>
-                Start Fresh
+              <button className="btn" onClick={() => navigate("/profile")}>
+                Stats
               </button>
             </>
-          ) : (
-            ""
           )}
-        </>
-      )}
-      {newBadge && (
-        <>
-          <button onClick={() => setNewBadge(null)}>close</button>
-          <p>{newBadgeTitle}</p>
-          <p>{newBadgeSubtitle}</p>
-          <img src={newBadge} />
-          <p>unlocked</p>
-          <p>{newBadgeDesc}</p>
-        </>
-      )}
 
-      <Outlet />
-    </>
+          <AvatarDisplay
+            loading={loading}
+            setLoading={setLoading}
+            avatar={avatar}
+            loggedIn={loggedIn}
+            setLoggedIn={setLoggedIn}
+          />
+        </div>
+      </header>
+
+      <BadgeDialog
+        openBadge={newBadge}
+        setOpenBadge={setNewBadge}
+        badgeTitle={newBadgeTitle}
+        badgeSubtitle={newBadgeSubtitle}
+        badgeUrl={newBadge}
+        badgeDesc={newBadgeDesc}
+        badgeUnlocked={true}
+      />
+
+      <main>
+        <Outlet />
+      </main>
+    </div>
   );
 }

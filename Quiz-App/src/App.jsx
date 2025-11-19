@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
+import { Center, Spinner } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 
 import MainLayout from "./layouts/MainLayout.jsx";
 import CategoryDisplay from "./components/CategoryDisplay.jsx";
@@ -17,13 +18,15 @@ import HomeScreen from "./pages/HomeScreen.jsx";
 import Profile from "./pages/Profile.jsx";
 import Settings from "./pages/Settings.jsx";
 import SettingsUpdate from "./pages/SettingsUpdate.jsx";
+import Credits from "./pages/Credits.jsx";
+import "./styles/App.css";
 
 function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [category, setCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
-  const [categoryId, setCategoryId] = useState(null);
+  const [categoryId, setCategoryId] = useState("");
   const [questionNumber, setQuestionNumber] = useState(10);
   const [difficulty, setDifficulty] = useState("any");
   const [type, setType] = useState("any");
@@ -81,7 +84,10 @@ function App() {
           setQuestions(preparedQuestions);
           setStatus("success");
 
-          localStorage.setItem("quizQuestions", JSON.stringify(data.results));
+          localStorage.setItem(
+            "quizQuestions",
+            JSON.stringify(preparedQuestions)
+          );
         }
       })
       .catch(() => {
@@ -91,7 +97,18 @@ function App() {
   }, [quizStart, status]);
 
   if (authLoading) {
-    return <p>Loading...</p>;
+    return (
+      <>
+        <Center height="100vh">
+          <Spinner
+            size="xl"
+            color="white"
+            animationDuration="0.8s"
+            borderWidth="6px"
+          />
+        </Center>
+      </>
+    );
   }
 
   function NoDirectAccess({ children }) {
@@ -120,7 +137,12 @@ function App() {
         <Route
           path="/auth/:mode"
           element={
-            <AuthPage msg={msg} setMsg={setMsg} setLoggedIn={setLoggedIn} />
+            <AuthPage
+              msg={msg}
+              setMsg={setMsg}
+              loggedIn={loggedIn}
+              setLoggedIn={setLoggedIn}
+            />
           }
         />
 
@@ -133,6 +155,7 @@ function App() {
                   mode="link-account"
                   msg={msg}
                   setMsg={setMsg}
+                  loggedIn={loggedIn}
                   setLoggedIn={setLoggedIn}
                 />
               ) : (
@@ -173,6 +196,8 @@ function App() {
                   setUsername={setUsername}
                   loggedIn={loggedIn}
                   setLoggedIn={setLoggedIn}
+                  setCategory={setCategory}
+                  setSubCategory={setSubCategory}
                 />
               }
             />
@@ -196,6 +221,8 @@ function App() {
               }
             />
 
+            <Route path="/credits" element={<Credits />}></Route>
+
             <Route
               path="/update-settings/:mode/:step"
               element={
@@ -207,26 +234,13 @@ function App() {
 
             <Route
               element={
-                <MainLayout
-                  setQuizStart={setQuizStart}
-                  setStatus={setStatus}
-                  setQuestionNumber={setQuestionNumber}
-                  setDifficulty={setDifficulty}
-                  setType={setType}
-                  loggedIn={loggedIn}
-                  setLoggedIn={setLoggedIn}
-                  loading={loading}
-                  setLoading={setLoading}
-                  avatar={avatar}
-                  setAvatar={setAvatar}
-                />
-              }
-            >
-              <Route
-                path="/home"
-                element={
-                  <HomeScreen
-                    setCategory={setCategory}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MainLayout
                     setQuizStart={setQuizStart}
                     setStatus={setStatus}
                     setQuestionNumber={setQuestionNumber}
@@ -234,10 +248,27 @@ function App() {
                     setType={setType}
                     loggedIn={loggedIn}
                     setLoggedIn={setLoggedIn}
+                    loading={loading}
+                    setLoading={setLoading}
+                    avatar={avatar}
+                    setAvatar={setAvatar}
+                  />
+                </motion.div>
+              }
+            >
+              <Route
+                path="/home"
+                element={
+                  <HomeScreen
+                    category={category}
+                    setCategory={setCategory}
+                    setSubCategory={setSubCategory}
+                    setCategoryId={setCategoryId}
+                    loggedIn={loggedIn}
+                    setLoggedIn={setLoggedIn}
                     username={username}
                     setUsername={setUsername}
                     avatar={avatar}
-                    setAvatar={setAvatar}
                     loading={loading}
                     setLoading={setLoading}
                   />
@@ -246,7 +277,14 @@ function App() {
 
               <Route
                 path="/category"
-                element={<CategoryDisplay setCategory={setCategory} />}
+                element={
+                  <CategoryDisplay
+                    category={category}
+                    setCategory={setCategory}
+                    setSubCategory={setSubCategory}
+                    setCategoryId={setCategoryId}
+                  />
+                }
               />
 
               <Route
@@ -271,7 +309,9 @@ function App() {
                     setSubCategory={setSubCategory}
                     setCategoryId={setCategoryId}
                     setQuestionNumber={setQuestionNumber}
+                    difficulty={difficulty}
                     setDifficulty={setDifficulty}
+                    type={type}
                     setType={setType}
                     setQuizStart={setQuizStart}
                     setStatus={setStatus}
@@ -318,6 +358,7 @@ function App() {
                       userAnswers={userAnswers}
                       difficulty={difficulty}
                       setQuizStart={setQuizStart}
+                      questionCurrentIndex={questionCurrentIndex}
                       setQuestionCurrentIndex={setQuestionCurrentIndex}
                       setCurrentOption={setCurrentOption}
                       setUserAnswers={setUserAnswers}
@@ -333,12 +374,16 @@ function App() {
               />
 
               <Route
-                path="/answers"
+                path="/answers/:category/:subCategory?"
                 element={
                   <NoDirectAccess>
                     <AnswersComparison
                       questions={questions}
                       userAnswers={userAnswers}
+                      category={category}
+                      setCategory={setCategory}
+                      subCategory={subCategory}
+                      setSubCategory={setSubCategory}
                     />
                   </NoDirectAccess>
                 }

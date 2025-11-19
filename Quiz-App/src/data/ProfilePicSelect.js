@@ -1,10 +1,11 @@
-const profilePicSelect = {
-  1: "https://placehold.net/1.png",
-  2: "https://placehold.net/6.png",
-  3: "https://placehold.net/3.png",
-  4: "https://placehold.net/9.png",
-  5: "https://placehold.net/4.png",
-  6: "https://placehold.net/10.png",
-};
+const localAvatars = import.meta.glob("../assets/avatar_img/*.png", {
+  eager: true,
+});
+const profilePicSelect = Object.fromEntries(
+  Object.entries(localAvatars).map(([path, module]) => {
+    const fileName = path.split("/").pop().replace(".png", "");
+    return [fileName, module.default];
+  })
+);
 
 export default profilePicSelect;

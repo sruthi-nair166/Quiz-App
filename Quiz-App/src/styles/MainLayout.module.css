@@ -1,0 +1,60 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+}
+
+.login-stats-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge-buttons {
+  background: grey;
+  height: 5rem;
+  width: 5rem;
+  padding: 1rem;
+  clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+}
+
+.icon-wrapper {
+  border-radius: 50%;
+  height: 3rem;
+  width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.badge-dialog {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 614px) {
+  .wrapper {
+    background-color: white;
+  }
+}

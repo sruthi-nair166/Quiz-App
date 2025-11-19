@@ -1,5 +1,14 @@
-import { useNavigate, useNavigationType, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useNavigationType,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import { useEffect } from "react";
+import styles from "../styles/StartQuizScreen.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { Portal, Select, createListCollection } from "@chakra-ui/react";
 
 export default function StartQuizScreen({
   category,
@@ -8,7 +17,9 @@ export default function StartQuizScreen({
   setSubCategory,
   setCategoryId,
   setQuestionNumber,
+  difficulty,
   setDifficulty,
+  type,
   setType,
   setQuizStart,
   setStatus,
@@ -19,6 +30,8 @@ export default function StartQuizScreen({
 }) {
   const navigate = useNavigate();
   const action = useNavigationType();
+  const location = useLocation();
+  const cameFromRetake = location.state?.from === "retake";
   const {
     category: categoryParam,
     subCategory: subCategoryParam,
@@ -56,47 +69,194 @@ export default function StartQuizScreen({
     }
   }, [action]);
 
+  const framework1 = createListCollection({
+    items: [
+      { label: "Any", value: "any" },
+      { label: "Easy", value: "easy" },
+      { label: "Medium", value: "medium" },
+      { label: "Hard", value: "hard" },
+    ],
+  });
+
+  const framework2 = createListCollection({
+    items: [
+      { label: "Any", value: "any" },
+      { label: "Multiple Choice", value: "multiple" },
+      { label: "True/false", value: "boolean" },
+    ],
+  });
+
   return (
     <>
-      <button onClick={() => navigate(-1)}>Back</button>
+      <button
+        className={`${styles["back-positioning"]} back`}
+        onClick={() => {
+          if (cameFromRetake) {
+            navigate("/home");
+          } else {
+            navigate(-1);
+          }
+        }}
+      >
+        <FontAwesomeIcon icon={faArrowLeft} size="lg" />
+      </button>
 
-      {subCategory ? (
-        <>
-          <h1>{category}</h1>
-          <h1>{subCategory} quiz</h1>
-        </>
-      ) : (
-        <h1>{category} quiz</h1>
-      )}
+      <div className={styles["start-quiz-wrapper"]}>
+        <div>
+          {subCategory ? (
+            <>
+              <h1
+                style={{ color: "var(--dark-purple)" }}
+                className={styles["quiz-title"]}
+              >
+                {subCategory || ""}
+              </h1>
+              <p
+                className="uppercase text-medium"
+                style={{ textAlign: "center", color: "var(--hover-purple)" }}
+              >
+                quiz
+              </p>
+            </>
+          ) : (
+            <>
+              <h1
+                style={{ color: "var(--dark-purple)" }}
+                className={styles["quiz-title"]}
+              >
+                {category || ""}
+              </h1>
+              <p
+                className="uppercase text-medium"
+                style={{ textAlign: "center", color: "var(--hover-purple)" }}
+              >
+                quiz
+              </p>
+            </>
+          )}
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="no-of-q">Select Number of Questions:</label>
-        <input
-          type="number"
-          defaultValue={10}
-          min={10}
-          max={50}
-          id="no-of-q"
-          onChange={(e) => setQuestionNumber(e.target.value)}
-        />
+        <form onSubmit={handleSubmit}>
+          <div className={styles["select-wrapper"]}>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <div>
+                <label className={styles["quiz-select"]} htmlFor="no-of-q">
+                  No. of Questions:{" "}
+                </label>
+                <input
+                  className={styles["quiz-select"]}
+                  style={{ color: "var(--dark-purple)", height: "20px" }}
+                  type="number"
+                  defaultValue={10}
+                  min={10}
+                  max={50}
+                  id="no-of-q"
+                  onChange={(e) => setQuestionNumber(e.target.value)}
+                />
+              </div>
 
-        <label htmlFor="difficulty">Select Difficulty:</label>
-        <select id="difficulty" onChange={(e) => setDifficulty(e.target.value)}>
-          <option value="any">Any</option>
-          <option value="easy">Easy</option>
-          <option value="medium">Medium</option>
-          <option value="hard">Hard</option>
-        </select>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span className={styles["quiz-select"]} htmlFor="type">
+                  Difficulty:{" "}
+                </span>
 
-        <label htmlFor="type">Select Type</label>
-        <select id="type" onChange={(e) => setType(e.target.value)}>
-          <option value="any">Any</option>
-          <option value="multiple">Multiple Choice</option>
-          <option value="boolean">True/False</option>
-        </select>
+                <Select.Root
+                  collection={framework1}
+                  value={[difficulty]}
+                  onValueChange={(e) => setDifficulty(e.value[0])}
+                  borderColor="var(--dark-purple)"
+                >
+                  <Select.HiddenSelect />
 
-        <button type="submit">Start</button>
-      </form>
+                  <Select.Control>
+                    <Select.Trigger
+                      color="var(--dark-purple)"
+                      border="1px solid"
+                      borderColor="var(--dark-purple)"
+                      borderRadius="md"
+                      size="sm"
+                      width="80px"
+                      px={1}
+                      className={styles["select-height"]}
+                    >
+                      <Select.ValueText placeholder="Any" />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator color="var(--dark-purple)" />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {framework1.items.map((framework) => (
+                          <Select.Item item={framework} key={framework.value}>
+                            {framework.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
+              </div>
+            </div>
+
+            <div style={{ display: "flex" }}>
+              <span className={styles["quiz-select"]} htmlFor="type">
+                Type:{" "}
+              </span>
+
+              <Select.Root
+                collection={framework2}
+                value={[type]}
+                onValueChange={(e) => setType(e.value[0])}
+                borderColor="var(--dark-purple)"
+              >
+                <Select.HiddenSelect />
+
+                <Select.Control>
+                  <Select.Trigger
+                    color="var(--dark-purple)"
+                    border="1px solid"
+                    borderColor="var(--dark-purple)"
+                    borderRadius="md"
+                    size="sm"
+                    width="140px"
+                    px={1}
+                    className={styles["select-height"]}
+                  >
+                    <Select.ValueText placeholder="Any" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator color="var(--dark-purple)" />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {framework2.items.map((framework) => (
+                        <Select.Item item={framework} key={framework.value}>
+                          {framework.label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
+            </div>
+          </div>
+
+          <div className={styles["submit-wrapper"]}>
+            <button
+              className={`${styles.submit} uppercase text-bold`}
+              type="submit"
+            >
+              Start Quiz
+            </button>
+          </div>
+        </form>
+      </div>
     </>
   );
 }

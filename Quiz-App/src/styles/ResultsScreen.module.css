@@ -1,0 +1,95 @@
+.results-screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2rem;
+  flex: 1;
+  padding: 1rem;
+  margin: 0.5rem;
+  background-color: white;
+  border-radius: 2rem 2rem 1rem 1rem;
+}
+
+.back-positioning {
+  left: -5px;
+  top: 10px;
+}
+
+.results-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  border: 1px solid var(--dark-pink);
+  background-color: var(--dark-pink);
+  border-radius: 1rem;
+  min-height: 350px;
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 2rem;
+  transform: scale(0.8);
+  opacity: 0;
+  animation: scalePop 0.35s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+}
+
+@keyframes scalePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.results-card p {
+  text-align: center;
+}
+
+.check-answers-btn {
+  color: white;
+  background-color: var(--pink);
+  padding: 0.3rem 1rem;
+  border-radius: 1rem;
+}
+
+.check-answers-btn:hover {
+  color: var(--dark-pink);
+  background-color: white;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 350px;
+  width: 100%;
+  gap: 1rem;
+  align-self: center;
+  text-align: center;
+}
+
+.btn-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 450px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (min-width: 614px) {
+  .results-screen-wrapper {
+    margin: 0 auto;
+    width: 100%;
+  }
+  .back-positioning {
+    left: 150px;
+    top: 80px;
+  }
+}

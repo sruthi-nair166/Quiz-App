@@ -1,0 +1,81 @@
+.quiz-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  background-color: white;
+  margin: 4rem 0.5rem 0.5rem 0.5rem;
+  padding: 1rem;
+  border-radius: 2rem 2rem 1rem 1rem;
+  max-width: 600px;
+}
+
+.spinner-color {
+  color: white;
+}
+
+.color {
+  color: white;
+}
+
+.back-positioning {
+  top: 10px;
+}
+
+.options-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  padding: 1.5rem 0;
+  width: 100%;
+}
+
+.option-btns {
+  background-color: white;
+  color: black;
+  border: 3px solid var(--purple);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.option-btns:hover {
+  background-color: var(--light-purple);
+}
+
+.selected-option {
+  background-color: var(--light-purple);
+}
+
+.prev-next-btn-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.option-enter {
+  transform: translateX(-20px);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.option-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+@media (min-width: 614px) {
+  .spinner-color {
+    color: var(--purple);
+  }
+  .back-positioning {
+    top: 80px;
+  }
+  .color {
+    color: #b2b7c3;
+  }
+  .quiz-form {
+    align-items: center;
+    margin: 0 auto;
+  }
+}
