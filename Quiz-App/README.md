@@ -19,23 +19,54 @@
 #### Desktop
 
 <p align="center">
-  <img src="./screenshots/Desktop/home_screen.png" width="48%"  />
-  <img src="./screenshots/Desktop/home_screen.png" width="48%" />
+    <img src="./screenshots/Desktop/home_screen.png" width="85%" alt="home screen">
 </p>
+
+<details>
+
+  <summary><strong>Full Desktop Gallery (click to expand)</strong></summary>
+  <br/>
+
+  <p align="center">
+    <img src="./screenshots/Desktop/home_screen_guest.png" width="85%" alt="guest home screen">
+  </p>
+
+  <p align="center">
+    <img src="./screenshots/Desktop/category.png" width="85%" alt="category screen">
+  </p>
+
+  <p align="center">
+    <img src="./screenshots/Desktop/quiz.png" width="85%" alt="quiz screen">
+  </p>
+
+  <p align="center">
+    <img src="./screenshots/Desktop/results.png" width="85%" alt="results screen">
+  </p>
+
+  <p align="center">
+    <img src="./screenshots/Desktop/login.png" width="85%" alt="login screen">
+  </p>
+
+</details>
 
 #### Mobile
 
 <p align="center">
-  <img src="./screenshots/Mobile/home_screen_mobile.png" width="32%"  />
-  <img src="./screenshots/Mobile/category_mobile.png" width="32%" />
-  <img src="./screenshots/Mobile/avatar_selection_mobile.png" width="32%" />
+  <img src="./screenshots/Mobile/home_screen_mobile.png"  height="300px" alt="home screen mobile" />
+  <img src="./screenshots/Mobile/category_mobile.png" height="300px" alt="category screen mobile" />
+  <img src="./screenshots/Mobile/profile_mobile.png" height="300px" alt="profile screen" />
 </p>
 
-<p align="center">
-  <img src="./screenshots/Mobile/profile_mobile.png" width="32%"  />
-  <img src="./screenshots/Mobile/stats_mobile.png" width="32%" />
-  <img src="./screenshots/Mobile/badges_mobile.png" width="32%" />
-</p>
+<details>
+  <summary><strong>Full Mobile Gallery (click to expand)</strong></summary>
+  <br/>
+
+  <p align="center">
+    <img src="./screenshots/Mobile/stats_mobile.png" height="300px" alt="stats screen"/>
+    <img src="./screenshots/Mobile/badges_mobile.png" height="300px" alt="badges screen" />
+    <img src="./screenshots/Mobile/avatar_selection_mobile.png" height="300px" alt="avatar selection screen"  />
+  </p>
+</details>
 
 ### Tech Stack
 
