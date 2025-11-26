@@ -52,9 +52,9 @@
 #### Mobile
 
 <p align="center">
-  <img src="./screenshots/Mobile/home_screen_mobile.png" width="32%" alt="home screen mobile" />
-  <img src="./screenshots/Mobile/category_mobile.png" width="32%" alt="category screen mobile" />
-  <img src="./screenshots/Mobile/profile_mobile.png" width="32%" alt="profile screen" />
+  <img src="./screenshots/Mobile/home_screen_mobile.png" width="30%" alt="home screen mobile" />
+  <img src="./screenshots/Mobile/category_mobile.png" width="30%" alt="category screen mobile" />
+  <img src="./screenshots/Mobile/profile_mobile.png" width="30%" alt="profile screen" />
 </p>
 
 <details>
@@ -62,9 +62,9 @@
   <br/>
 
   <p align="center">
-    <img src="./screenshots/Mobile/stats_mobile.png" width="32%" alt="stats screen"/>
-    <img src="./screenshots/Mobile/badges_mobile.png" width="32%" alt="badges screen" />
-    <img src="./screenshots/Mobile/avatar_selection_mobile.png" width="32%" alt="avatar selection screen"  />
+    <img src="./screenshots/Mobile/stats_mobile.png" width="30%" alt="stats screen"/>
+    <img src="./screenshots/Mobile/badges_mobile.png" width="30%" alt="badges screen" />
+    <img src="./screenshots/Mobile/avatar_selection_mobile.png" width="30%" alt="avatar selection screen"  />
   </p>
 </details>
 
