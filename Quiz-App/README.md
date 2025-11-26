@@ -19,7 +19,7 @@
 #### Desktop
 
 <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/home_screen.png" width="85%" alt="home screen">
+    <img src="/Quiz-App/screenshots/Desktop/home_screen.png" width="85%" alt="home screen">
 </p>
 
 <details>
@@ -28,23 +28,23 @@
   <br/>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/home_screen_guest.png" width="85%" alt="guest home screen">
+    <img src="/Quiz-App/screenshots/Desktop/home_screen_guest.png" width="85%" alt="guest home screen">
   </p>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/category.png" width="85%" alt="category screen">
+    <img src="/Quiz-App/screenshots/Desktop/category.png" width="85%" alt="category screen">
   </p>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/quiz.png" width="85%" alt="quiz screen">
+    <img src="/Quiz-App/screenshots/Desktop/quiz.png" width="85%" alt="quiz screen">
   </p>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/results.png" width="85%" alt="results screen">
+    <img src="/Quiz-App/screenshots/Desktop/results.png" width="85%" alt="results screen">
   </p>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Desktop/login.png" width="85%" alt="login screen">
+    <img src="/Quiz-App/screenshots/Desktop/login.png" width="85%" alt="login screen">
   </p>
 
 </details>
@@ -52,9 +52,9 @@
 #### Mobile
 
 <p align="center">
-  <img src="./Quiz-App/screenshots/Mobile/home_screen_mobile.png" width="30%" alt="home screen mobile" />
-  <img src="./Quiz-App/screenshots/Mobile/category_mobile.png" width="30%" alt="category screen mobile" />
-  <img src="./Quiz-App/screenshots/Mobile/profile_mobile.png" width="30%" alt="profile screen" />
+  <img src="/Quiz-App/screenshots/Mobile/home_screen_mobile.png" width="30%" alt="home screen mobile" />
+  <img src="/Quiz-App/screenshots/Mobile/category_mobile.png" width="30%" alt="category screen mobile" />
+  <img src="/Quiz-App/screenshots/Mobile/profile_mobile.png" width="30%" alt="profile screen" />
 </p>
 
 <details>
@@ -62,9 +62,9 @@
   <br/>
 
   <p align="center">
-    <img src="./Quiz-App/screenshots/Mobile/stats_mobile.png" width="30%" alt="stats screen"/>
-    <img src="./Quiz-App/screenshots/Mobile/badges_mobile.png" width="30%" alt="badges screen" />
-    <img src="./Quiz-App/screenshots/Mobile/avatar_selection_mobile.png" width="30%" alt="avatar selection screen"  />
+    <img src="/Quiz-App/screenshots/Mobile/stats_mobile.png" width="30%" alt="stats screen"/>
+    <img src="/Quiz-App/screenshots/Mobile/badges_mobile.png" width="30%" alt="badges screen" />
+    <img src="/Quiz-App/screenshots/Mobile/avatar_selection_mobile.png" width="30%" alt="avatar selection screen"  />
   </p>
 </details>
 
