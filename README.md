@@ -78,16 +78,16 @@
 
 ### Features
 
-- **Multiple Quiz Categories**
+- **Multiple Quiz Categories** <br/>
   Fetched from the OpenTriviaDB API across various categories and subcategories.
 
-- **Dynamic Quiz Generation**
+- **Dynamic Quiz Generation** <br/>
   Each quiz session is generated with randomized questions.
 
-- **Account Creation (Optional)**
+- **Account Creation (Optional)** <br/>
   Users can either log in with email or continue as guests.
 
-- **Progress Tracking**
+- **Progress Tracking** <br/>
   Quiz results are stored in Firestore, enabling:
 
   - Score history
@@ -95,16 +95,16 @@
   - Category-based performance
   - User badges (achievement system)
 
-- **User Profile Page**
-  Displays username, profile picture, stats, badges, and score charts.
+- **User Profile Page** <br/>
+  Displays username & profile picture (logged-in only) and stats, badges, score charts (all users).
 
-- **Responsive UI**
+- **Responsive UI** <br/>
   Built with Chakra UI + CSS Modules for clean mobile-first and desktop layouts.
 
-- **Recent Quiz Card**
+- **Recent Quiz Card** <br/>
   Shows the most recently played quiz on the home page (based on stored data).
 
-- **Random Quiz Generator**
+- **Random Quiz Generator** <br/>
   A dedicated card that instantly starts a random quiz from any category.
 
 ### Links
