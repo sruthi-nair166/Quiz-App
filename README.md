@@ -107,6 +107,18 @@
 - **Random Quiz Generator** <br/>
   A dedicated card that instantly starts a random quiz from any category.
 
+### UI/UX Decisions
+
+- Designed clear feedback states across authentication flows, including error messages for invalid credentials, email verification prompts, and confirmation message for successful account creation.
+
+- Used modal-based messaging for profile updates (username, avatar, password, email) to provide focused, interruption-free feedback after user actions.
+
+- Implemented confirmation modals for destructive actions such as clearing data or deleting an account, followed by explicit success messages to reduce accidental data loss and user confusion.
+
+- Ensured quiz interactions are visually clear and predictable, with disabled navigation where appropriate (e.g., previous button on the first question) and distinct visual indicators for selected answers.
+
+- Prioritized explicit system feedback throughout the app so users always understand the result of their actions, especially in multi-step or asynchronous flows.
+
 ### Links
 
 - Solution URL: [https://github.com/sruthi-nair166/Quiz-App](https://github.com/sruthi-nair166/Quiz-App)
