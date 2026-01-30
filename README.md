@@ -109,6 +109,8 @@
 
 ### UI/UX Decisions
 
+- Implemented the interface based on a Figma design layout, ensuring visual consistency and alignment
+
 - Designed clear feedback states across authentication flows, including error messages for invalid credentials, email verification prompts, and confirmation message for successful account creation.
 
 - Used modal-based messaging for profile updates (username, avatar, password, email) to provide focused, interruption-free feedback after user actions.
