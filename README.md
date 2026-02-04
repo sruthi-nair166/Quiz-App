@@ -6,8 +6,9 @@
 
 - [About](#about)
   - [Screenshots](#screenshots)
-  - [Features](#features)
   - [Tech Stack](#tech-stack)
+  - [Features](#features)
+  - [UI/UX Decisions](#uiux-decisions)
   - [Links](#links)
 - [Author](#author)
 - [Acknowledgments](#acknowledgments)
